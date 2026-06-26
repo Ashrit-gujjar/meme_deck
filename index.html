@@ -218,6 +218,107 @@
     100%{ transform:translateY(-100vh) scale(0.6); opacity:0; }
   }
 
+  /* ---------- FLUID BLOBS ---------- */
+  .bg-fx .fluid{
+    position:absolute; filter:blur(50px); opacity:0.26; will-change:transform, border-radius;
+  }
+  .bg-fx .fluid1{
+    width:420px; height:380px; left:6%; top:16%; background:var(--accent-cyan);
+    animation:fluidMove1 38s ease-in-out infinite, fluidMorph 21s ease-in-out infinite;
+  }
+  .bg-fx .fluid2{
+    width:380px; height:420px; right:4%; bottom:6%; background:var(--accent-violet);
+    animation:fluidMove2 44s ease-in-out infinite, fluidMorph 27s ease-in-out infinite reverse;
+  }
+  .bg-fx .fluid3{
+    width:300px; height:300px; left:46%; top:54%; background:var(--accent-pink);
+    animation:fluidMove1 33s ease-in-out infinite reverse, fluidMorph 19s ease-in-out infinite;
+    opacity:0.18;
+  }
+  @keyframes fluidMove1{
+    0%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(70px,-50px) scale(1.1); }
+    66%{ transform:translate(-50px,60px) scale(0.92); }
+    100%{ transform:translate(0,0) scale(1); }
+  }
+  @keyframes fluidMove2{
+    0%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(-60px,40px) scale(0.94); }
+    66%{ transform:translate(55px,-60px) scale(1.08); }
+    100%{ transform:translate(0,0) scale(1); }
+  }
+  @keyframes fluidMorph{
+    0%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
+    25%{ border-radius:60% 40% 30% 70% / 55% 60% 40% 45%; }
+    50%{ border-radius:35% 65% 55% 45% / 60% 40% 60% 40%; }
+    75%{ border-radius:55% 45% 40% 60% / 40% 55% 45% 60%; }
+    100%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
+  }
+
+  /* ---------- DJ LIGHT BEAMS ---------- */
+  .bg-fx .beam-rig{ position:absolute; inset:0; mix-blend-mode:screen; }
+  .bg-fx .beam{
+    position:absolute; top:-4%; width:220px; height:120vh;
+    clip-path:polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
+    transform-origin:top center; filter:blur(7px); opacity:0.22;
+    animation:beamSweep ease-in-out infinite; will-change:transform;
+  }
+  .bg-fx .beam1{ left:2%; background:linear-gradient(to bottom, var(--accent-cyan), transparent 70%); animation-duration:9s; }
+  .bg-fx .beam2{ left:30%; background:linear-gradient(to bottom, var(--accent-pink), transparent 70%); animation-duration:12s; animation-delay:-3s; }
+  .bg-fx .beam3{ left:60%; background:linear-gradient(to bottom, var(--accent-violet), transparent 70%); animation-duration:10s; animation-delay:-6s; }
+  .bg-fx .beam4{ left:84%; background:linear-gradient(to bottom, var(--accent-amber), transparent 70%); animation-duration:14s; animation-delay:-1s; }
+  @keyframes beamSweep{
+    0%{ transform:rotate(-28deg); }
+    50%{ transform:rotate(28deg); }
+    100%{ transform:rotate(-28deg); }
+  }
+
+  /* ---------- LASER SWEEPS ---------- */
+  .bg-fx .laser{
+    position:absolute; height:2px; width:160vmax;
+    mix-blend-mode:screen; opacity:0.45;
+    animation:laserSweep ease-in-out infinite; will-change:transform;
+  }
+  .bg-fx .laser1{
+    left:50%; top:88%; transform-origin:0% 50%;
+    background:linear-gradient(90deg, transparent, #39ff7a, transparent);
+    box-shadow:0 0 8px 1px #39ff7a; animation-duration:7s;
+  }
+  .bg-fx .laser2{
+    left:6%; top:94%; transform-origin:0% 50%;
+    background:linear-gradient(90deg, transparent, #ff3b3b, transparent);
+    box-shadow:0 0 8px 1px #ff3b3b; animation-duration:9.5s; animation-delay:-3s;
+  }
+  .bg-fx .laser3{
+    left:94%; top:90%; transform-origin:100% 50%;
+    background:linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    box-shadow:0 0 8px 1px var(--accent-cyan); animation-duration:11s; animation-delay:-5s;
+  }
+  @keyframes laserSweep{
+    0%{ transform:rotate(-35deg); }
+    50%{ transform:rotate(15deg); }
+    100%{ transform:rotate(-35deg); }
+  }
+
+  /* ---------- STRING LIGHTS ---------- */
+  .bg-fx-strings{ position:absolute; top:-10px; left:0; width:100%; height:150px; opacity:0.85; }
+  .string-strand{ transform-origin:0% 0%; animation:stringSway ease-in-out infinite; }
+  .string-strand--a{ animation-duration:7s; }
+  .string-strand--b{ animation-duration:9s; animation-direction:alternate-reverse; animation-delay:-2s; }
+  @keyframes stringSway{
+    0%{ transform:rotate(-1.4deg); }
+    50%{ transform:rotate(1.4deg); }
+    100%{ transform:rotate(-1.4deg); }
+  }
+  .bulb{ animation:bulbTwinkle 2s ease-in-out infinite; filter:drop-shadow(0 0 4px rgba(255,255,255,0.55)); }
+  .string-strand .bulb:nth-of-type(1){ animation-delay:0s; }
+  .string-strand .bulb:nth-of-type(2){ animation-delay:.3s; }
+  .string-strand .bulb:nth-of-type(3){ animation-delay:.6s; }
+  .string-strand .bulb:nth-of-type(4){ animation-delay:.9s; }
+  .string-strand .bulb:nth-of-type(5){ animation-delay:1.2s; }
+  .string-strand .bulb:nth-of-type(6){ animation-delay:1.5s; }
+  @keyframes bulbTwinkle{ 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+
   /* ---------- TOOLTIP ---------- */
   .tooltip{
     position:fixed; z-index:70; transform:translate(-50%,-100%);
