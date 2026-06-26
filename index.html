@@ -197,6 +197,60 @@
   .pad-plus{ font-family:var(--font-display); font-size:34px; font-weight:600; line-height:1; }
   @keyframes breathe{ 0%,100%{ box-shadow:0 0 0 0 rgba(0,238,255,0); } 50%{ box-shadow:0 0 0 7px rgba(0,238,255,0.06); } }
 
+  /* ---------- AMBIENT BACKGROUND ---------- */
+  .deckbar, .fader-rail, .stage{ position:relative; z-index:1; }
+
+  .bg-fx{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .bg-fx .orb{ position:absolute; border-radius:50%; filter:blur(46px); opacity:0.32; animation:orbDrift ease-in-out infinite alternate; will-change:transform; }
+  .bg-fx .orb1{ width:340px; height:340px; left:-90px; top:-70px; background:var(--accent-cyan); animation-duration:26s; }
+  .bg-fx .orb2{ width:300px; height:300px; right:-70px; top:38%; background:var(--accent-pink); animation-duration:33s; animation-delay:-6s; }
+  .bg-fx .orb3{ width:260px; height:260px; left:32%; bottom:-110px; background:var(--accent-violet); animation-duration:24s; animation-delay:-11s; }
+  @keyframes orbDrift{ 0%{ transform:translate(0,0) scale(1); } 100%{ transform:translate(48px,34px) scale(1.14); } }
+
+  .bg-fx .particle{
+    position:absolute; bottom:-12px; width:3px; height:3px; border-radius:50%;
+    background:var(--accent-cyan); opacity:0; animation:particleRise linear infinite; will-change:transform, opacity;
+  }
+  @keyframes particleRise{
+    0%{ transform:translateY(0) scale(1); opacity:0; }
+    8%{ opacity:0.55; }
+    92%{ opacity:0.25; }
+    100%{ transform:translateY(-100vh) scale(0.6); opacity:0; }
+  }
+
+  /* ---------- TOOLTIP ---------- */
+  .tooltip{
+    position:fixed; z-index:70; transform:translate(-50%,-100%);
+    background:var(--bg-panel-2); border:1px solid var(--accent-cyan); color:var(--text-primary);
+    font-size:12px; line-height:1.4; padding:8px 12px; border-radius:8px; max-width:220px;
+    pointer-events:none; opacity:0; transition:opacity .15s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,0.45);
+  }
+  .tooltip.is-visible{ opacity:1; }
+  .tooltip.tooltip--below{ transform:translate(-50%,0); }
+
+  /* ---------- OVERLAYS / MODALS ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:90; background:rgba(5,6,10,0.74); backdrop-filter:blur(5px);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; visibility:hidden; transition:opacity .2s ease;
+  }
+  .overlay.is-visible{ opacity:1; visibility:visible; }
+  .modal-panel{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:18px;
+    padding:28px 26px; max-width:380px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.55);
+  }
+  .modal-title{ font-family:var(--font-display); font-size:18px; font-weight:600; margin:0 0 14px; }
+  .modal-body{ font-size:13.5px; color:var(--text-dim); line-height:1.65; margin:0 0 20px; }
+  .modal-body ul{ margin:0; padding-left:18px; }
+  .modal-body li{ margin-bottom:8px; }
+  .modal-body strong{ color:var(--text-primary); }
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+  .modal-btn{ padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600; }
+  .modal-btn--ghost{ background:transparent; border:1px solid var(--line); color:var(--text-dim); }
+  .modal-btn--ghost:hover{ border-color:var(--text-dim); color:var(--text-primary); }
+  .modal-btn--accent{ background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet)); color:#04141a; border:none; }
+
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{
       animation-duration:0.01ms !important; animation-iteration-count:1 !important;
@@ -213,6 +267,50 @@
 </style>
 </head>
 <body class="is-empty">
+
+  <div class="bg-fx" aria-hidden="true">
+    <span class="orb orb1"></span>
+    <span class="orb orb2"></span>
+    <span class="orb orb3"></span>
+    <span class="particle" style="left:8%; animation-duration:14s; animation-delay:0s;"></span>
+    <span class="particle" style="left:18%; animation-duration:19s; animation-delay:-4s;"></span>
+    <span class="particle" style="left:29%; animation-duration:16s; animation-delay:-9s;"></span>
+    <span class="particle" style="left:41%; animation-duration:21s; animation-delay:-2s;"></span>
+    <span class="particle" style="left:54%; animation-duration:15s; animation-delay:-12s;"></span>
+    <span class="particle" style="left:66%; animation-duration:18s; animation-delay:-6s;"></span>
+    <span class="particle" style="left:77%; animation-duration:20s; animation-delay:-15s;"></span>
+    <span class="particle" style="left:88%; animation-duration:17s; animation-delay:-8s;"></span>
+    <span class="particle" style="left:95%; animation-duration:22s; animation-delay:-1s;"></span>
+  </div>
+
+  <div class="overlay" id="onboardOverlay">
+    <div class="modal-panel">
+      <p class="modal-title">Welcome to DROPDECK</p>
+      <div class="modal-body">
+        <ul>
+          <li>Tap <strong>+</strong> to load a meme sound from your files.</li>
+          <li>Tap a pad once to fire it once. Hold a pad to loop it until you let go.</li>
+          <li><strong>DROP VOL</strong> controls your meme sounds only. <strong>TRACK VOL</strong> controls the optional background track.</li>
+          <li>Load a background track and drops will duck it by 20% automatically, then bring it back up.</li>
+          <li>Hover any control for a moment to see what it does.</li>
+        </ul>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn--accent" id="onboardDismiss">Got it — let's drop</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="confirmOverlay">
+    <div class="modal-panel">
+      <p class="modal-title" id="confirmTitle">Wait —</p>
+      <p class="modal-body" id="confirmBody"></p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn--ghost" id="confirmCancelBtn">Cancel</button>
+        <button class="modal-btn modal-btn--accent" id="confirmContinueBtn">Continue</button>
+      </div>
+    </div>
+  </div>
 
   <header class="deckbar">
     <div class="brand">
@@ -303,6 +401,14 @@
   var dropVolSlider = document.getElementById("dropVol");
   var dropVolReadout = document.getElementById("dropVolReadout");
 
+  var onboardOverlay = document.getElementById("onboardOverlay");
+  var onboardDismissBtn = document.getElementById("onboardDismiss");
+  var confirmOverlay = document.getElementById("confirmOverlay");
+  var confirmTitleEl = document.getElementById("confirmTitle");
+  var confirmBodyEl = document.getElementById("confirmBody");
+  var confirmCancelBtn = document.getElementById("confirmCancelBtn");
+  var confirmContinueBtn = document.getElementById("confirmContinueBtn");
+
   // ---------- helpers ----------
   function deriveTitle(filename){
     var base = filename.replace(/\.[^./\\]+$/, "");
@@ -356,6 +462,70 @@
   function flashFire(el){
     el.classList.add("is-firing");
     setTimeout(function(){ el.classList.remove("is-firing"); }, 200);
+  }
+
+  // ---------- tooltip (hover-and-wait) ----------
+  var tooltipEl = document.createElement("div");
+  tooltipEl.className = "tooltip";
+  document.body.appendChild(tooltipEl);
+  var tooltipTimer = null;
+
+  function showTooltip(el, text){
+    tooltipEl.textContent = text;
+    var rect = el.getBoundingClientRect();
+    var left = Math.min(Math.max(rect.left + rect.width / 2, 90), window.innerWidth - 90);
+    var top = rect.top - 10;
+    tooltipEl.style.left = left + "px";
+    if (top < 50){
+      tooltipEl.style.top = (rect.bottom + 10) + "px";
+      tooltipEl.classList.add("tooltip--below");
+    } else {
+      tooltipEl.style.top = top + "px";
+      tooltipEl.classList.remove("tooltip--below");
+    }
+    tooltipEl.classList.add("is-visible");
+  }
+
+  function hideTooltip(){
+    tooltipEl.classList.remove("is-visible");
+  }
+
+  function bindTooltip(el, text){
+    if (!el) return;
+    el.addEventListener("mouseenter", function(){
+      clearTimeout(tooltipTimer);
+      tooltipTimer = setTimeout(function(){ showTooltip(el, text); }, 700);
+    });
+    el.addEventListener("mouseleave", function(){
+      clearTimeout(tooltipTimer);
+      hideTooltip();
+    });
+    el.addEventListener("pointerdown", hideTooltip);
+  }
+
+  bindTooltip(addPadBtn, "Add a meme sound from your files");
+  bindTooltip(loadTrackBtn, "Load a background track so drops can duck its volume");
+  bindTooltip(trackToggleBtn, "Play or pause the background track");
+  bindTooltip(stopAllBtn, "Stop every sound playing right now");
+  bindTooltip(trackVolSlider, "Volume for the background track only");
+  bindTooltip(dropVolSlider, "Volume for your meme sounds only");
+
+  // ---------- generic confirm modal ----------
+  function showConfirm(title, message, onContinue, onCancel){
+    confirmTitleEl.textContent = title;
+    confirmBodyEl.textContent = message;
+    confirmOverlay.classList.add("is-visible");
+
+    function cleanup(){
+      confirmOverlay.classList.remove("is-visible");
+      confirmContinueBtn.removeEventListener("click", contHandler);
+      confirmCancelBtn.removeEventListener("click", cancelHandler);
+    }
+    function contHandler(){ cleanup(); if (onContinue) onContinue(); }
+    function cancelHandler(){ cleanup(); if (onCancel) onCancel(); }
+
+    confirmContinueBtn.addEventListener("click", contHandler);
+    confirmCancelBtn.addEventListener("click", cancelHandler);
   }
 
   // ---------- pad lifecycle ----------
@@ -477,6 +647,9 @@
       removePad(pad);
     });
 
+    bindTooltip(el, "Tap to play \"" + title + "\" once — hold to loop it.");
+    bindTooltip(removeEl, "Remove this sound");
+
     pads.push(pad);
 
     if (body.classList.contains("is-empty")){
@@ -596,6 +769,47 @@
     });
     activeDropCount = 0;
     restoreBackground();
+  });
+
+  // ---------- first-time walkthrough ----------
+  onboardOverlay.classList.add("is-visible");
+  onboardDismissBtn.addEventListener("click", function(){
+    onboardOverlay.classList.remove("is-visible");
+  });
+
+  // ---------- refresh confirmation (3 steps) ----------
+  // Browsers only allow ONE native dialog on the actual refresh button / tab
+  // close (the beforeunload handler below) — that's a security limit no site
+  // can override. What we CAN fully control is the in-page keyboard shortcut,
+  // so F5 / Ctrl+R / Cmd+R go through a real 3-step confirmation chain.
+  var REFRESH_MESSAGES = [
+    "Reloading clears every loaded sound and your background track. Continue?",
+    "Sure? You'll need to re-add everything from scratch.",
+    "Final check — reload the page now?"
+  ];
+
+  function startRefreshChain(step){
+    if (step >= REFRESH_MESSAGES.length){
+      window.location.reload();
+      return;
+    }
+    showConfirm("Hold on (" + (step + 1) + "/3)", REFRESH_MESSAGES[step], function(){
+      startRefreshChain(step + 1);
+    });
+  }
+
+  window.addEventListener("keydown", function(e){
+    var isF5 = e.key === "F5";
+    var isCtrlR = (e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R");
+    if (isF5 || isCtrlR){
+      e.preventDefault();
+      startRefreshChain(0);
+    }
+  });
+
+  window.addEventListener("beforeunload", function(e){
+    e.preventDefault();
+    e.returnValue = "";
   });
 
 })();
