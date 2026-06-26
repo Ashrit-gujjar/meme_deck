@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DROPDECK — Live Drop Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#070810;
+    --bg-panel:#12141e;
+    --bg-panel-2:#181b27;
+    --line: rgba(255,255,255,0.07);
+    --text-primary:#e9edf3;
+    --text-dim:#8a90a3;
+    --text-faint:#565d70;
+    --accent-cyan:#00eeff;
+    --accent-pink:#ff2f7b;
+    --accent-amber:#ffb020;
+    --accent-violet:#8b6bff;
+    --font-display:'Space Grotesk','Segoe UI',sans-serif;
+    --font-body:'Inter','Segoe UI',sans-serif;
+    --font-mono:'JetBrains Mono','Consolas',monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ touch-action:manipulation; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background-color:var(--bg-void);
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(0,238,255,0.08), transparent 42%),
+      radial-gradient(circle at 88% 78%, rgba(255,47,123,0.07), transparent 46%),
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: auto, auto, 44px 44px, 44px 44px;
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  button{ font-family:inherit; border:none; background:none; color:inherit; cursor:pointer; }
+  button:focus-visible, input:focus-visible{ outline:2px solid var(--accent-cyan); outline-offset:2px; }
+
+  /* ---------- DECK BAR (header) ---------- */
+  .deckbar{
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+    padding:16px 24px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(18,20,30,0.9), rgba(18,20,30,0.55));
+    backdrop-filter:blur(6px);
+  }
+  .brand{ display:flex; flex-direction:column; line-height:1.1; margin-right:auto; }
+  .brand-mark{
+    font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:0.04em;
+    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .brand-eyebrow{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.18em; color:var(--text-faint); margin-top:2px; }
+
+  .track-strip{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .track-btn{
+    display:flex; align-items:center; gap:8px;
+    padding:8px 14px; border-radius:10px;
+    background:var(--bg-panel-2); border:1px solid var(--line);
+    font-size:13px; color:var(--text-dim); transition:border-color .15s, color .15s;
+  }
+  .track-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
+  .track-toggle{
+    width:34px; height:34px; border-radius:50%;
+    background:var(--bg-panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; color:var(--text-primary);
+    flex-shrink:0;
+  }
+  .track-toggle:hover{ border-color:var(--accent-cyan); }
+  .track-label{ max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .eq-bars{ display:flex; align-items:flex-end; gap:3px; height:16px; }
+  .eq-bars span{
+    width:3px; background:var(--accent-cyan); border-radius:1px; height:4px;
+    animation-play-state:paused; transition:height .15s;
+  }
+  .eq-bars.is-playing span{ animation:eqBounce 0.9s ease-in-out infinite; animation-play-state:running; }
+  .eq-bars span:nth-child(1){ animation-delay:0s; }
+  .eq-bars span:nth-child(2){ animation-delay:.15s; }
+  .eq-bars span:nth-child(3){ animation-delay:.3s; }
+  .eq-bars span:nth-child(4){ animation-delay:.1s; }
+  @keyframes eqBounce{ 0%,100%{ height:4px; } 50%{ height:16px; } }
+
+  .stopall-btn{
+    padding:10px 16px; border-radius:10px; font-size:12px; font-weight:600; letter-spacing:0.06em;
+    background:rgba(255,47,123,0.1); border:1px solid rgba(255,47,123,0.4); color:var(--accent-pink);
+    transition:background .15s;
+  }
+  .stopall-btn:hover{ background:rgba(255,47,123,0.2); }
+
+  /* ---------- FADER RAIL ---------- */
+  .fader-rail{
+    display:flex; gap:28px; flex-wrap:wrap;
+    padding:14px 24px; border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,0.015);
+  }
+  .fader-unit{ display:flex; align-items:center; gap:12px; }
+  .fader-unit label{
+    font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--text-faint);
+    width:76px;
+  }
+  .fader-readout{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); width:34px; }
+
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; width:150px; height:5px; border-radius:3px;
+    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
+    outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:14px; height:22px; border-radius:4px;
+    background:#fff; box-shadow:0 0 10px rgba(0,238,255,0.7); cursor:pointer; border:1px solid rgba(0,0,0,0.2);
+  }
+  input[type=range]::-moz-range-track{ background:transparent; }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:22px; border-radius:4px; background:#fff;
+    box-shadow:0 0 10px rgba(0,238,255,0.7); cursor:pointer; border:1px solid rgba(0,0,0,0.2);
+  }
+
+  /* ---------- STAGE / EMPTY STATE ---------- */
+  .stage{ padding:28px 24px 48px; }
+  .empty-hint{ display:none; text-align:center; max-width:360px; margin:0 auto 28px; }
+  .empty-title{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:0 0 8px; color:var(--text-primary); }
+  .empty-sub{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0; }
+
+  body.is-empty .deckbar, body.is-empty .fader-rail{ display:none; }
+  body.is-empty .stage{
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px;
+  }
+  body.is-empty .empty-hint{ display:block; }
+  body.is-empty .pad-grid{ display:flex; }
+  body.is-empty .pad--add{ width:148px; height:148px; font-size:46px; }
+
+  /* ---------- PAD GRID ---------- */
+  .pad-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr));
+    gap:16px; max-width:1100px; margin:0 auto;
+  }
+
+  .pad{
+    position:relative; aspect-ratio:1/1; border-radius:18px; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    padding:10px; touch-action:none; user-select:none; -webkit-user-select:none;
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    box-shadow:0 0 0 0 rgba(0,0,0,0);
+    transition:transform .08s ease, box-shadow .15s ease;
+    --charge:0;
+  }
+  .pad:active{ transform:scale(0.96); }
+
+  .pad::before{
+    content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:conic-gradient(var(--pad-color, var(--accent-cyan)) calc(var(--charge) * 1deg), transparent 0deg);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+    mask:radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+    opacity:0.7;
+  }
+
+  .pad.is-looping{ box-shadow:0 0 0 2px var(--pad-color, var(--accent-cyan)), 0 0 26px 4px var(--pad-color, var(--accent-cyan)); }
+  .pad.is-looping::before{ animation:ringPulse 0.9s ease-in-out infinite; }
+  @keyframes ringPulse{ 50%{ opacity:0.4; } }
+
+  .pad.is-firing{ box-shadow:0 0 0 2px var(--pad-color, var(--accent-cyan)), 0 0 22px 4px var(--pad-color, var(--accent-cyan)); }
+
+  .pad-title{
+    position:relative; z-index:1; font-size:12.5px; font-weight:500; text-align:center;
+    color:var(--text-primary); line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  .pad-remove{
+    position:absolute; top:6px; right:6px; z-index:2;
+    width:22px; height:22px; border-radius:50%;
+    background:rgba(0,0,0,0.45); color:var(--text-dim);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; line-height:1; opacity:0.55; transition:opacity .15s, color .15s;
+  }
+  .pad-remove:hover, .pad-remove:active{ opacity:1; color:#fff; }
+
+  .pad--add{
+    background:transparent; border:2px dashed rgba(255,255,255,0.22); color:rgba(255,255,255,0.55);
+    animation:breathe 3.2s ease-in-out infinite;
+  }
+  .pad--add:hover{ border-color:var(--accent-cyan); color:var(--accent-cyan); }
+  .pad--add::before{ display:none; }
+  .pad-plus{ font-family:var(--font-display); font-size:34px; font-weight:600; line-height:1; }
+  @keyframes breathe{ 0%,100%{ box-shadow:0 0 0 0 rgba(0,238,255,0); } 50%{ box-shadow:0 0 0 7px rgba(0,238,255,0.06); } }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+    }
+  }
+
+  @media (max-width: 480px){
+    .deckbar{ padding:14px 16px; }
+    .fader-rail{ padding:12px 16px; gap:18px; }
+    .stage{ padding:20px 16px 40px; }
+    .pad-grid{ grid-template-columns:repeat(auto-fill, minmax(108px, 1fr)); gap:12px; }
+  }
+</style>
+</head>
+<body class="is-empty">
+
+  <header class="deckbar">
+    <div class="brand">
+      <span class="brand-mark">DROPDECK</span>
+      <span class="brand-eyebrow">LIVE DROP CONSOLE</span>
+    </div>
+
+    <div class="track-strip" id="trackStrip">
+      <button class="track-btn" id="loadTrackBtn" title="Load a background track so drops can duck it">
+        <span id="trackBtnLabel">＋ Load track</span>
+      </button>
+      <button class="track-toggle" id="trackToggleBtn" hidden title="Play / pause track">
+        <span id="trackToggleIcon">▶</span>
+      </button>
+      <span class="track-label" id="trackLabel"></span>
+      <div class="eq-bars" id="eqBars"><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <button class="stopall-btn" id="stopAllBtn" title="Stop every drop immediately">STOP ALL</button>
+  </header>
+
+  <div class="fader-rail">
+    <div class="fader-unit">
+      <label for="trackVol">TRACK VOL</label>
+      <input type="range" id="trackVol" min="0" max="100" value="70">
+      <span class="fader-readout" id="trackVolReadout">70%</span>
+    </div>
+    <div class="fader-unit">
+      <label for="dropVol">DROP VOL</label>
+      <input type="range" id="dropVol" min="0" max="100" value="90">
+      <span class="fader-readout" id="dropVolReadout">90%</span>
+    </div>
+  </div>
+
+  <main class="stage">
+    <div class="empty-hint" id="emptyHint">
+      <p class="empty-title">Nothing loaded yet.</p>
+      <p class="empty-sub">Tap + and pick a sound from your files.<br>Tap a pad once to fire it once — hold it down to loop.</p>
+    </div>
+
+    <div class="pad-grid" id="padGrid">
+      <button class="pad pad--add" id="addPadBtn" aria-label="Add a sound">
+        <span class="pad-plus">+</span>
+      </button>
+    </div>
+  </main>
+
+  <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+  <input type="file" id="bgFileInput" accept="audio/*" hidden>
+
+<script>
+(function(){
+  "use strict";
+
+  var HOLD_THRESHOLD_MS = 260;
+  var DUCK_RAMP_MS = 150;
+
+  var PALETTE = ["#00eeff", "#ff2f7b", "#ffb020", "#8b6bff"];
+
+  var pads = [];
+  var padCounter = 0;
+  var activeDropCount = 0;
+
+  var dropVolumeFraction = 0.9;
+  var trackVolumeFraction = 0.7;
+
+  var bgAudio = null;
+  var bgDucked = false;
+  var bgRampHandle = null;
+
+  // ---------- DOM refs ----------
+  var body = document.body;
+  var padGrid = document.getElementById("padGrid");
+  var addPadBtn = document.getElementById("addPadBtn");
+  var fileInput = document.getElementById("fileInput");
+  var bgFileInput = document.getElementById("bgFileInput");
+
+  var loadTrackBtn = document.getElementById("loadTrackBtn");
+  var trackBtnLabel = document.getElementById("trackBtnLabel");
+  var trackToggleBtn = document.getElementById("trackToggleBtn");
+  var trackToggleIcon = document.getElementById("trackToggleIcon");
+  var trackLabel = document.getElementById("trackLabel");
+  var eqBars = document.getElementById("eqBars");
+
+  var stopAllBtn = document.getElementById("stopAllBtn");
+  var trackVolSlider = document.getElementById("trackVol");
+  var trackVolReadout = document.getElementById("trackVolReadout");
+  var dropVolSlider = document.getElementById("dropVol");
+  var dropVolReadout = document.getElementById("dropVolReadout");
+
+  // ---------- helpers ----------
+  function deriveTitle(filename){
+    var base = filename.replace(/\.[^./\\]+$/, "");
+    base = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!base) return "Untitled";
+    return base.split(" ").map(function(w){
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(" ");
+  }
+
+  function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+  function rampVolume(audioEl, toVal, durationMs){
+    if (!audioEl) return;
+    if (bgRampHandle) cancelAnimationFrame(bgRampHandle);
+    var fromVal = audioEl.volume;
+    var start = performance.now();
+    toVal = clamp01(toVal);
+    function step(now){
+      var t = Math.min((now - start) / durationMs, 1);
+      audioEl.volume = fromVal + (toVal - fromVal) * t;
+      if (t < 1){
+        bgRampHandle = requestAnimationFrame(step);
+      } else {
+        bgRampHandle = null;
+      }
+    }
+    bgRampHandle = requestAnimationFrame(step);
+  }
+
+  function duckBackground(){
+    if (!bgAudio || bgDucked) return;
+    bgDucked = true;
+    rampVolume(bgAudio, trackVolumeFraction * 0.8, DUCK_RAMP_MS);
+  }
+
+  function restoreBackground(){
+    if (!bgAudio || !bgDucked) return;
+    if (activeDropCount > 0) return;
+    bgDucked = false;
+    rampVolume(bgAudio, trackVolumeFraction, DUCK_RAMP_MS);
+  }
+
+  function endDropPlayback(pad){
+    if (!pad.counted) return;
+    pad.counted = false;
+    activeDropCount = Math.max(0, activeDropCount - 1);
+    if (activeDropCount === 0) restoreBackground();
+  }
+
+  function flashFire(el){
+    el.classList.add("is-firing");
+    setTimeout(function(){ el.classList.remove("is-firing"); }, 200);
+  }
+
+  // ---------- pad lifecycle ----------
+  function stopLoopedInstance(pad){
+    pad.audio.loop = false;
+    pad.audio.pause();
+    pad.audio.currentTime = 0;
+    pad.isLooping = false;
+    pad.el.classList.remove("is-looping");
+    pad.el.style.setProperty("--charge", 0);
+    endDropPlayback(pad);
+  }
+
+  function lockLoop(pad){
+    pad.isLooping = true;
+    pad.audio.loop = true;
+    pad.el.classList.add("is-looping");
+    pad.el.style.setProperty("--charge", 360);
+  }
+
+  function startCharge(pad){
+    var start = performance.now();
+    function frame(now){
+      if (!pad.pressing) return;
+      var elapsed = now - start;
+      var pct = Math.min(elapsed / HOLD_THRESHOLD_MS, 1);
+      pad.el.style.setProperty("--charge", (pct * 360).toFixed(1));
+      if (pct >= 1){
+        if (pad.pressing && !pad.isLooping) lockLoop(pad);
+        return;
+      }
+      pad.rafId = requestAnimationFrame(frame);
+    }
+    pad.rafId = requestAnimationFrame(frame);
+  }
+
+  function onPadPointerDown(pad, e){
+    e.preventDefault();
+    if (pad.el.setPointerCapture){
+      try { pad.el.setPointerCapture(e.pointerId); } catch(err){}
+    }
+    pad.pressing = true;
+    pad.audio.currentTime = 0;
+    pad.audio.volume = dropVolumeFraction;
+    pad.audio.loop = false;
+    var playPromise = pad.audio.play();
+    if (playPromise && playPromise.catch) playPromise.catch(function(){});
+
+    pad.counted = true;
+    activeDropCount++;
+    if (activeDropCount === 1) duckBackground();
+
+    startCharge(pad);
+  }
+
+  function onPadRelease(pad){
+    if (!pad.pressing) return;
+    pad.pressing = false;
+    if (pad.rafId) cancelAnimationFrame(pad.rafId);
+    pad.rafId = null;
+
+    if (pad.isLooping){
+      stopLoopedInstance(pad);
+    } else {
+      pad.el.style.setProperty("--charge", 0);
+      flashFire(pad.el);
+      // let it finish naturally; the 'ended' listener handles bookkeeping
+    }
+  }
+
+  function createPad(file){
+    padCounter++;
+    var id = "pad-" + padCounter;
+    var color = PALETTE[(padCounter - 1) % PALETTE.length];
+    var title = deriveTitle(file.name);
+    var url = URL.createObjectURL(file);
+
+    var audio = new Audio(url);
+    audio.preload = "auto";
+    audio.volume = dropVolumeFraction;
+
+    var el = document.createElement("button");
+    el.className = "pad";
+    el.style.setProperty("--pad-color", color);
+    el.style.setProperty("--charge", 0);
+    el.setAttribute("aria-label", title);
+
+    var removeEl = document.createElement("span");
+    removeEl.className = "pad-remove";
+    removeEl.textContent = "×";
+    removeEl.title = "Remove";
+
+    var titleEl = document.createElement("span");
+    titleEl.className = "pad-title";
+    titleEl.textContent = title;
+
+    el.appendChild(removeEl);
+    el.appendChild(titleEl);
+    padGrid.appendChild(el);
+
+    var pad = {
+      id: id, title: title, color: color, url: url,
+      el: el, audio: audio,
+      pressing: false, isLooping: false, counted: false, rafId: null
+    };
+
+    audio.addEventListener("ended", function(){
+      endDropPlayback(pad);
+    });
+
+    el.addEventListener("pointerdown", function(e){ onPadPointerDown(pad, e); });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(function(evt){
+      el.addEventListener(evt, function(){ onPadRelease(pad); });
+    });
+
+    removeEl.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    removeEl.addEventListener("click", function(e){
+      e.stopPropagation();
+      removePad(pad);
+    });
+
+    pads.push(pad);
+
+    if (body.classList.contains("is-empty")){
+      body.classList.remove("is-empty");
+    }
+  }
+
+  function removePad(pad){
+    if (pad.rafId) cancelAnimationFrame(pad.rafId);
+    if (pad.pressing){
+      pad.pressing = false;
+      if (pad.isLooping){
+        stopLoopedInstance(pad);
+      } else {
+        endDropPlayback(pad);
+      }
+    } else if (!pad.audio.paused){
+      pad.audio.pause();
+      endDropPlayback(pad);
+    }
+    pad.audio.src = "";
+    URL.revokeObjectURL(pad.url);
+    pad.el.remove();
+    pads = pads.filter(function(p){ return p.id !== pad.id; });
+  }
+
+  // ---------- add pads ----------
+  addPadBtn.addEventListener("click", function(){ fileInput.click(); });
+
+  fileInput.addEventListener("change", function(){
+    var files = Array.prototype.slice.call(fileInput.files || []);
+    files.forEach(function(file){
+      if (file.type.indexOf("audio") === -1 && !/\.(mp3|wav|ogg|m4a|aac|flac|webm)$/i.test(file.name)) return;
+      createPad(file);
+    });
+    fileInput.value = "";
+  });
+
+  // ---------- background track ----------
+  loadTrackBtn.addEventListener("click", function(){ bgFileInput.click(); });
+
+  bgFileInput.addEventListener("change", function(){
+    var file = bgFileInput.files && bgFileInput.files[0];
+    if (!file) return;
+
+    if (bgAudio){
+      bgAudio.pause();
+      URL.revokeObjectURL(bgAudio.src);
+    }
+    var url = URL.createObjectURL(file);
+    bgAudio = new Audio(url);
+    bgAudio.loop = true;
+    bgAudio.volume = trackVolumeFraction;
+    bgDucked = false;
+
+    trackLabel.textContent = deriveTitle(file.name);
+    trackBtnLabel.textContent = "Change track";
+    trackToggleBtn.hidden = false;
+
+    var p = bgAudio.play();
+    if (p && p.then){
+      p.then(function(){ setTrackPlayingUI(true); }).catch(function(){ setTrackPlayingUI(false); });
+    } else {
+      setTrackPlayingUI(true);
+    }
+
+    bgFileInput.value = "";
+  });
+
+  function setTrackPlayingUI(isPlaying){
+    trackToggleIcon.textContent = isPlaying ? "❚❚" : "▶";
+    eqBars.classList.toggle("is-playing", isPlaying);
+  }
+
+  trackToggleBtn.addEventListener("click", function(){
+    if (!bgAudio) return;
+    if (bgAudio.paused){
+      var p = bgAudio.play();
+      if (p && p.then) p.then(function(){ setTrackPlayingUI(true); });
+      else setTrackPlayingUI(true);
+    } else {
+      bgAudio.pause();
+      setTrackPlayingUI(false);
+    }
+  });
+
+  // ---------- faders ----------
+  trackVolSlider.addEventListener("input", function(){
+    var v = Number(trackVolSlider.value);
+    trackVolumeFraction = v / 100;
+    trackVolReadout.textContent = v + "%";
+    if (bgAudio){
+      bgAudio.volume = bgDucked ? trackVolumeFraction * 0.8 : trackVolumeFraction;
+    }
+  });
+
+  dropVolSlider.addEventListener("input", function(){
+    var v = Number(dropVolSlider.value);
+    dropVolumeFraction = v / 100;
+    dropVolReadout.textContent = v + "%";
+    pads.forEach(function(pad){ pad.audio.volume = dropVolumeFraction; });
+  });
+
+  // ---------- stop all ----------
+  stopAllBtn.addEventListener("click", function(){
+    pads.forEach(function(pad){
+      if (pad.rafId) cancelAnimationFrame(pad.rafId);
+      pad.rafId = null;
+      pad.pressing = false;
+      pad.audio.loop = false;
+      pad.audio.pause();
+      pad.audio.currentTime = 0;
+      pad.isLooping = false;
+      pad.counted = false;
+      pad.el.classList.remove("is-looping");
+      pad.el.style.setProperty("--charge", 0);
+    });
+    activeDropCount = 0;
+    restoreBackground();
+  });
+
+})();
+</script>
+</body>
+</html>
