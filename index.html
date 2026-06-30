@@ -228,59 +228,184 @@
   .deck{
     flex:0 0 var(--deck-w); width:var(--deck-w); min-width:240px; max-width:560px;
     border-left:1px solid var(--line);
-    background:linear-gradient(180deg, rgba(18,20,30,0.92), rgba(12,13,20,0.86));
-    backdrop-filter:blur(8px);
-    display:flex; flex-direction:column; padding:20px 18px 24px;
-    overflow-y:auto;
+    background:
+      radial-gradient(circle at 85% -10%, rgba(0,238,255,0.05), transparent 50%),
+      linear-gradient(180deg, rgba(16,18,28,0.95), rgba(10,11,18,0.92));
+    backdrop-filter:blur(10px);
+    display:flex; flex-direction:column;
+    overflow-y:auto; position:relative;
   }
+
   .deck-heading{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 20px; border-bottom:1px solid var(--line);
+    flex-shrink:0;
   }
-  .deck-eyebrow{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.18em; color:var(--text-faint); }
-
-  .deck-load-btn{
-    width:100%; padding:12px 14px; border-radius:12px; font-size:13px; font-weight:600;
-    background:var(--bg-panel-2); border:1px solid var(--line); color:var(--text-dim);
-    transition:border-color .15s, color .15s; margin-bottom:18px;
+  .deck-heading-text{ display:flex; flex-direction:column; gap:2px; }
+  .deck-eyebrow{
+    font-family:var(--font-mono); font-size:10px; letter-spacing:0.2em; color:var(--accent-cyan);
+    display:flex; align-items:center; gap:7px;
   }
-  .deck-load-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
+  .deck-eyebrow::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--accent-cyan);
+    box-shadow:0 0 8px 1px var(--accent-cyan);
+  }
+  .deck-subeyebrow{ font-size:10.5px; color:var(--text-faint); letter-spacing:0.02em; }
 
-  /* ---------- LIBRARY PANEL ---------- */
-  .deck{ position:relative; }
   .hamburger-btn{
-    width:36px; height:36px; border-radius:9px; background:var(--bg-panel-2); border:1px solid var(--line);
+    width:38px; height:38px; border-radius:10px; background:var(--bg-panel-2); border:1px solid var(--line);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-    flex-shrink:0; transition:border-color .15s;
+    flex-shrink:0; transition:border-color .15s, transform .12s;
   }
   .hamburger-btn:hover{ border-color:var(--accent-cyan); }
+  .hamburger-btn:active{ transform:scale(0.94); }
   .hamburger-btn span{ width:16px; height:2px; background:var(--text-primary); border-radius:2px; transition:transform .2s, opacity .2s; }
   .hamburger-btn.is-open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
   .hamburger-btn.is-open span:nth-child(2){ opacity:0; }
   .hamburger-btn.is-open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
 
+  /* ---------- NOW PLAYING CARD ---------- */
+  .now-playing-card{
+    margin:18px 18px 0; padding:24px 18px 18px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+    border:1px solid var(--line); border-radius:18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(0,0,0,0.3);
+  }
+
+  .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:0 0 20px; position:relative; }
+  .disk-wrap::after{
+    content:""; position:absolute; bottom:6px; width:min(150px,62%); height:14px; border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0.45), transparent 70%); z-index:-1;
+  }
+  .disk{
+    width:min(180px, 76%); aspect-ratio:1/1; border-radius:50%; position:relative;
+    background:
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,0.05) 0deg 1.2deg, transparent 1.2deg 6deg),
+      radial-gradient(circle at 38% 32%, rgba(255,255,255,0.08), transparent 45%),
+      repeating-radial-gradient(circle at 50% 50%, #1c1f2c 0 2px, #131520 2px 4.5px);
+    box-shadow:0 0 0 1px var(--line), 0 22px 38px rgba(0,0,0,0.55), 0 0 32px rgba(0,238,255,0.07);
+  }
+  .disk.is-spinning{ animation:diskSpin 5.5s linear infinite; }
+  @keyframes diskSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  .disk::before{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(0,238,255,0.16), transparent 28%, rgba(139,107,255,0.14) 52%, transparent 78%);
+  }
+  .disk::after{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 2px 10px rgba(0,0,0,0.5);
+  }
+  .disk-label{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:52%; aspect-ratio:1/1; border-radius:50%;
+    background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+    display:flex; align-items:center; justify-content:center; text-align:center; padding:8%;
+    font-size:10px; font-weight:600; color:#04141a; line-height:1.25; overflow:hidden;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.4);
+  }
+  .disk-label::before{
+    content:""; position:absolute; width:7px; height:7px; border-radius:50%;
+    background:#04141a; box-shadow:0 0 0 2px rgba(255,255,255,0.25);
+  }
+  .disk-label span{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-top:14px; }
+
+  .track-meta{ text-align:center; margin-bottom:18px; }
+  .track-kind-pill{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:9.5px;
+    letter-spacing:0.1em; color:var(--text-faint); background:var(--bg-panel-2); border:1px solid var(--line);
+    padding:3px 9px; border-radius:20px; margin-bottom:8px;
+  }
+  .track-kind-pill.is-music{ color:var(--accent-cyan); border-color:rgba(0,238,255,0.3); }
+  .track-kind-pill.is-bgm{ color:var(--accent-amber); border-color:rgba(255,176,32,0.3); }
+  .track-title{
+    font-family:var(--font-display); font-size:14.5px; font-weight:600; color:var(--text-primary);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;
+  }
+  .track-title.is-empty{ color:var(--text-faint); font-weight:400; font-family:var(--font-body); }
+
+  .transport-row{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px; }
+  .transport-btn{
+    width:42px; height:42px; border-radius:50%; background:var(--bg-panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--text-dim);
+    transition:border-color .15s, color .15s, transform .12s;
+  }
+  .transport-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
+  .transport-btn:active{ transform:scale(0.92); }
+  .transport-btn--play{
+    width:56px; height:56px; font-size:19px;
+    background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)); color:#04141a; border:none;
+    box-shadow:0 6px 22px rgba(0,238,255,0.28);
+  }
+  .transport-btn--play:hover{ filter:brightness(1.08); }
+
+  .scrub-row{ display:flex; align-items:center; gap:9px; margin-bottom:4px; }
+  .time-readout{ font-family:var(--font-mono); font-size:10px; color:var(--text-faint); width:34px; flex-shrink:0; }
+  .time-readout--end{ text-align:right; }
+
+  .deck-range{
+    -webkit-appearance:none; appearance:none; flex:1; width:auto; height:5px; border-radius:3px;
+    outline:none; cursor:pointer;
+    background:linear-gradient(90deg, var(--accent-cyan) 0%, var(--accent-cyan) var(--fill, 0%), rgba(255,255,255,0.1) var(--fill, 0%), rgba(255,255,255,0.1) 100%);
+  }
+  .deck-range::-webkit-slider-thumb{
+    -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:#fff;
+    box-shadow:0 0 0 3px rgba(0,238,255,0.18), 0 2px 6px rgba(0,0,0,0.4); cursor:pointer; margin-top:0;
+  }
+  .deck-range::-moz-range-track{ background:transparent; height:5px; border-radius:3px; }
+  .deck-range::-moz-range-progress{ background:var(--accent-cyan); height:5px; border-radius:3px; }
+  .deck-range::-moz-range-thumb{
+    width:13px; height:13px; border-radius:50%; background:#fff; border:none;
+    box-shadow:0 0 0 3px rgba(0,238,255,0.18), 0 2px 6px rgba(0,0,0,0.4); cursor:pointer;
+  }
+
+  .deck-vol-row{ display:flex; align-items:center; gap:11px; margin:18px 18px 16px; }
+  .deck-vol-row label{
+    display:flex; align-items:center; gap:5px;
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.1em; color:var(--text-faint); white-space:nowrap;
+  }
+  .deck-vol-readout{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); width:30px; text-align:right; }
+
+  /* ---------- LIBRARY PANEL ---------- */
   .library-panel{
-    position:absolute; top:0; right:0; bottom:0; width:min(280px, 86%); z-index:8;
-    background:linear-gradient(180deg, rgba(20,22,33,0.97), rgba(13,14,22,0.97));
-    border-left:1px solid var(--line); box-shadow:-14px 0 34px rgba(0,0,0,0.45);
-    display:flex; flex-direction:column; padding:18px 14px;
-    transform:translateX(100%); transition:transform .26s ease;
+    position:absolute; top:0; right:0; bottom:0; width:min(300px, 88%); z-index:8;
+    background:linear-gradient(180deg, rgba(19,21,31,0.985), rgba(11,12,19,0.985));
+    border-left:1px solid var(--line); box-shadow:-16px 0 36px rgba(0,0,0,0.5);
+    display:flex; flex-direction:column;
+    transform:translateX(100%); transition:transform .28s cubic-bezier(.2,.7,.3,1);
   }
   .library-panel.is-open{ transform:translateX(0); }
 
-  .library-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .library-title{ font-family:var(--font-display); font-size:14px; font-weight:600; }
-  .library-close{ width:28px; height:28px; border-radius:8px; color:var(--text-dim); font-size:16px; display:flex; align-items:center; justify-content:center; }
-  .library-close:hover{ color:var(--text-primary); }
+  .library-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 16px; border-bottom:1px solid var(--line); flex-shrink:0;
+  }
+  .library-title{ font-family:var(--font-display); font-size:14px; font-weight:600; letter-spacing:0.02em; }
+  .library-close{ width:30px; height:30px; border-radius:9px; color:var(--text-dim); font-size:17px; display:flex; align-items:center; justify-content:center; transition:background .15s, color .15s; }
+  .library-close:hover{ background:var(--bg-panel-2); color:var(--text-primary); }
+
+  .library-body{ flex:1; overflow-y:auto; padding:14px 16px 20px; display:flex; flex-direction:column; gap:22px; }
+
+  .library-section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .library-section-title{
+    display:flex; align-items:center; gap:7px;
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.14em; color:var(--text-dim);
+  }
+  .library-section-title::before{ content:""; width:7px; height:7px; border-radius:2px; }
+  .library-section--music .library-section-title::before{ background:var(--accent-cyan); box-shadow:0 0 6px var(--accent-cyan); }
+  .library-section--bgm .library-section-title::before{ background:var(--accent-amber); box-shadow:0 0 6px var(--accent-amber); }
 
   .library-add-btn{
-    width:100%; padding:10px 12px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:14px;
-    background:var(--bg-panel-2); border:1px dashed rgba(255,255,255,0.22); color:var(--text-dim);
-    transition:border-color .15s, color .15s;
+    width:30px; height:30px; border-radius:9px; flex-shrink:0;
+    background:var(--bg-panel-2); border:1px dashed rgba(255,255,255,0.25); color:var(--text-dim);
+    display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600; line-height:1;
+    transition:border-color .15s, color .15s, transform .12s;
   }
-  .library-add-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
+  .library-section--music .library-add-btn:hover{ border-color:var(--accent-cyan); color:var(--accent-cyan); border-style:solid; }
+  .library-section--bgm .library-add-btn:hover{ border-color:var(--accent-amber); color:var(--accent-amber); border-style:solid; }
+  .library-add-btn:active{ transform:scale(0.92); }
 
-  .library-list{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
-  .library-empty{ font-size:12.5px; color:var(--text-faint); text-align:center; padding:24px 8px; line-height:1.6; }
+  .library-list{ display:flex; flex-direction:column; gap:6px; min-height:8px; }
+  .library-empty{ font-size:11.5px; color:var(--text-faint); padding:10px 2px; line-height:1.6; }
 
   .library-item{
     display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px;
@@ -295,56 +420,6 @@
     display:flex; align-items:center; justify-content:center; font-size:13px; opacity:0.6;
   }
   .library-item-remove:hover{ opacity:1; color:#fff; }
-
-  .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:6px 0 18px; }
-  .disk{
-    width:min(190px, 80%); aspect-ratio:1/1; border-radius:50%; position:relative;
-    background:
-      radial-gradient(circle at 50% 50%, #060708 0 13%, transparent 13.2%),
-      repeating-radial-gradient(circle at 50% 50%, #1c1f2c 0 2px, #15171f 2px 4px);
-    box-shadow:0 0 0 1px var(--line), 0 18px 34px rgba(0,0,0,0.5), 0 0 28px rgba(0,238,255,0.08);
-    transform:rotate(0deg);
-  }
-  .disk.is-spinning{ animation:diskSpin 6s linear infinite; }
-  @keyframes diskSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
-  .disk::before{
-    content:""; position:absolute; inset:0; border-radius:50%;
-    background:conic-gradient(from 0deg, rgba(0,238,255,0.18), transparent 30%, rgba(139,107,255,0.16) 55%, transparent 80%);
-  }
-  .disk-label{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:55%; aspect-ratio:1/1; border-radius:50%;
-    background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
-    display:flex; align-items:center; justify-content:center; text-align:center; padding:6%;
-    font-size:10.5px; font-weight:600; color:#04141a; line-height:1.25; overflow:hidden;
-  }
-  .disk-label span{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-
-  .track-meta{ text-align:center; margin-bottom:14px; }
-  .track-title{
-    font-size:13.5px; font-weight:600; color:var(--text-primary);
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;
-  }
-  .track-title.is-empty{ color:var(--text-faint); font-weight:400; }
-
-  .transport-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; }
-  .transport-btn{
-    width:46px; height:46px; border-radius:50%; background:var(--bg-panel-2); border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text-primary);
-    transition:border-color .15s;
-  }
-  .transport-btn:hover{ border-color:var(--accent-cyan); }
-  .transport-btn--play{ width:54px; height:54px; font-size:18px; background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)); color:#04141a; border:none; }
-
-  .scrub-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
-  .time-readout{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); width:36px; flex-shrink:0; }
-  .time-readout--end{ text-align:right; }
-  #trackScrub{ flex:1; width:auto; }
-
-  .deck-vol-row{ display:flex; align-items:center; gap:12px; margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
-  .deck-vol-row label{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; color:var(--text-faint); white-space:nowrap; }
-  #deckTrackVol{ flex:1; width:auto; }
-  .deck-vol-readout{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); width:32px; text-align:right; }
 
   /* ---------- TOOLTIP ---------- */
   .tooltip{
@@ -461,7 +536,8 @@
           <li>Tap <strong>+</strong> to load a meme sound from your files.</li>
           <li>Tap a pad once to fire it once. Hold a pad to loop it until you let go.</li>
           <li>The right-hand <strong>deck</strong> holds your background track — drag its left edge to resize.</li>
-          <li>Tap the hamburger to open your <strong>library</strong>, add audio files, then tap any track to load it onto the deck.</li>
+          <li>Tap the hamburger to open your <strong>library</strong> — separate <strong>Music</strong> and <strong>BGM's</strong> sections, each with its own + to add files.</li>
+          <li>Tap any track in the library to load it onto the deck.</li>
           <li>Adding new files to the library never interrupts whatever's already playing.</li>
           <li>Loading a track shows a spinning disk, a progress bar, and its own volume slider.</li>
           <li>Playing a drop ducks the track to 80% automatically, then brings it back up.</li>
@@ -520,59 +596,81 @@
 
     <aside class="deck" id="deck" style="--deck-w-init:1">
       <div class="deck-heading">
-        <span class="deck-eyebrow">TRACK DECK</span>
+        <div class="deck-heading-text">
+          <span class="deck-eyebrow">TRACK DECK</span>
+          <span class="deck-subeyebrow" id="deckStatusText">Nothing loaded</span>
+        </div>
         <button class="hamburger-btn" id="libraryHamburger" aria-label="Toggle library">
           <span></span><span></span><span></span>
         </button>
       </div>
-
-      <button class="deck-load-btn" id="loadTrackBtn">＋ Add track to library</button>
 
       <div class="library-panel" id="libraryPanel">
         <div class="library-header">
           <span class="library-title">LIBRARY</span>
           <button class="library-close" id="libraryCloseBtn" aria-label="Close library">×</button>
         </div>
-        <button class="library-add-btn" id="libraryAddBtn">＋ Add audio files</button>
-        <div class="library-list" id="libraryList">
-          <p class="library-empty" id="libraryEmptyHint">No tracks yet.<br>Add audio files to build your library.</p>
+        <div class="library-body">
+          <div class="library-section library-section--music">
+            <div class="library-section-header">
+              <span class="library-section-title">MUSIC</span>
+              <button class="library-add-btn" id="libraryAddBtnMusic" aria-label="Add music files" title="Add music files">+</button>
+            </div>
+            <div class="library-list" id="libraryListMusic">
+              <p class="library-empty" id="libraryEmptyMusic">No music yet. Tap + to add tracks.</p>
+            </div>
+          </div>
+
+          <div class="library-section library-section--bgm">
+            <div class="library-section-header">
+              <span class="library-section-title">BGM's</span>
+              <button class="library-add-btn" id="libraryAddBtnBgm" aria-label="Add BGM files" title="Add BGM files">+</button>
+            </div>
+            <div class="library-list" id="libraryListBgm">
+              <p class="library-empty" id="libraryEmptyBgm">No BGMs yet. Tap + to add loops.</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="disk-wrap">
-        <div class="disk" id="disk">
-          <div class="disk-label"><span id="diskLabel">No track</span></div>
+      <div class="now-playing-card">
+        <div class="disk-wrap">
+          <div class="disk" id="disk">
+            <div class="disk-label"><span id="diskLabel">No track</span></div>
+          </div>
         </div>
-      </div>
 
-      <div class="track-meta">
-        <div class="track-title is-empty" id="trackTitle">No track loaded</div>
-      </div>
+        <div class="track-meta">
+          <span class="track-kind-pill" id="trackKindPill" hidden></span>
+          <div class="track-title is-empty" id="trackTitle">No track loaded</div>
+        </div>
 
-      <div class="transport-row">
-        <button class="transport-btn" id="trackRewindBtn" title="Back to start">⟲</button>
-        <button class="transport-btn transport-btn--play" id="trackToggleBtn" title="Play / pause track">
-          <span id="trackToggleIcon">▶</span>
-        </button>
-        <button class="transport-btn" id="trackMuteBtn" title="Mute / unmute track">🔊</button>
-      </div>
+        <div class="transport-row">
+          <button class="transport-btn" id="trackRewindBtn" title="Back to start">⟲</button>
+          <button class="transport-btn transport-btn--play" id="trackToggleBtn" title="Play / pause track">
+            <span id="trackToggleIcon">▶</span>
+          </button>
+          <button class="transport-btn" id="trackMuteBtn" title="Mute / unmute track">🔊</button>
+        </div>
 
-      <div class="scrub-row">
-        <span class="time-readout" id="timeNow">0:00</span>
-        <input type="range" id="trackScrub" min="0" max="100" value="0" step="0.1">
-        <span class="time-readout time-readout--end" id="timeEnd">0:00</span>
+        <div class="scrub-row">
+          <span class="time-readout" id="timeNow">0:00</span>
+          <input type="range" class="deck-range" id="trackScrub" min="0" max="100" value="0" step="0.1">
+          <span class="time-readout time-readout--end" id="timeEnd">0:00</span>
+        </div>
       </div>
 
       <div class="deck-vol-row">
         <label for="deckTrackVol">VOL</label>
-        <input type="range" id="deckTrackVol" min="0" max="100" value="70">
+        <input type="range" class="deck-range" id="deckTrackVol" min="0" max="100" value="70">
         <span class="deck-vol-readout" id="deckTrackVolReadout">70%</span>
       </div>
     </aside>
   </div>
 
   <input type="file" id="fileInput" accept="audio/*" multiple hidden>
-  <input type="file" id="bgFileInput" accept="audio/*" multiple hidden>
+  <input type="file" id="bgFileInputMusic" accept="audio/*" multiple hidden>
+  <input type="file" id="bgFileInputBgm" accept="audio/*" multiple hidden>
 
 <script>
 (function(){
@@ -600,14 +698,16 @@
   var padGrid = document.getElementById("padGrid");
   var addPadBtn = document.getElementById("addPadBtn");
   var fileInput = document.getElementById("fileInput");
-  var bgFileInput = document.getElementById("bgFileInput");
+  var bgFileInputMusic = document.getElementById("bgFileInputMusic");
+  var bgFileInputBgm = document.getElementById("bgFileInputBgm");
 
-  var loadTrackBtn = document.getElementById("loadTrackBtn");
   var trackToggleBtn = document.getElementById("trackToggleBtn");
   var trackToggleIcon = document.getElementById("trackToggleIcon");
   var trackRewindBtn = document.getElementById("trackRewindBtn");
   var trackMuteBtn = document.getElementById("trackMuteBtn");
   var trackTitle = document.getElementById("trackTitle");
+  var trackKindPill = document.getElementById("trackKindPill");
+  var deckStatusText = document.getElementById("deckStatusText");
   var disk = document.getElementById("disk");
   var diskLabel = document.getElementById("diskLabel");
   var trackScrub = document.getElementById("trackScrub");
@@ -626,9 +726,12 @@
   var libraryHamburger = document.getElementById("libraryHamburger");
   var libraryPanel = document.getElementById("libraryPanel");
   var libraryCloseBtn = document.getElementById("libraryCloseBtn");
-  var libraryAddBtn = document.getElementById("libraryAddBtn");
-  var libraryList = document.getElementById("libraryList");
-  var libraryEmptyHint = document.getElementById("libraryEmptyHint");
+  var libraryAddBtnMusic = document.getElementById("libraryAddBtnMusic");
+  var libraryAddBtnBgm = document.getElementById("libraryAddBtnBgm");
+  var libraryListMusic = document.getElementById("libraryListMusic");
+  var libraryListBgm = document.getElementById("libraryListBgm");
+  var libraryEmptyMusic = document.getElementById("libraryEmptyMusic");
+  var libraryEmptyBgm = document.getElementById("libraryEmptyBgm");
 
   var onboardOverlay = document.getElementById("onboardOverlay");
   var onboardDismissBtn = document.getElementById("onboardDismiss");
@@ -732,9 +835,9 @@
   }
 
   bindTooltip(addPadBtn, "Add a meme sound from your files");
-  bindTooltip(loadTrackBtn, "Add a track to your library");
   bindTooltip(libraryHamburger, "Open or close your track library");
-  bindTooltip(libraryAddBtn, "Add more audio files to the library");
+  bindTooltip(libraryAddBtnMusic, "Add music files to the Music section");
+  bindTooltip(libraryAddBtnBgm, "Add BGM loops to the BGM's section");
   bindTooltip(trackToggleBtn, "Play or pause the background track");
   bindTooltip(trackRewindBtn, "Jump back to the start of the track");
   bindTooltip(trackMuteBtn, "Mute or unmute the track");
@@ -919,14 +1022,15 @@
     setLibraryOpen(!libraryPanel.classList.contains("is-open"));
   });
   libraryCloseBtn.addEventListener("click", function(){ setLibraryOpen(false); });
-  loadTrackBtn.addEventListener("click", function(){ bgFileInput.click(); });
-  libraryAddBtn.addEventListener("click", function(){ bgFileInput.click(); });
+  libraryAddBtnMusic.addEventListener("click", function(){ bgFileInputMusic.click(); });
+  libraryAddBtnBgm.addEventListener("click", function(){ bgFileInputBgm.click(); });
 
-  function renderLibrary(){
-    libraryEmptyHint.style.display = library.length ? "none" : "block";
-    Array.prototype.slice.call(libraryList.querySelectorAll(".library-item")).forEach(function(n){ n.remove(); });
+  function renderLibraryList(listEl, emptyEl, kind){
+    var items = library.filter(function(t){ return t.kind === kind; });
+    emptyEl.style.display = items.length ? "none" : "block";
+    Array.prototype.slice.call(listEl.querySelectorAll(".library-item")).forEach(function(n){ n.remove(); });
 
-    library.forEach(function(track){
+    items.forEach(function(track){
       var item = document.createElement("div");
       item.className = "library-item" + (track.id === activeLibraryId ? " is-active" : "");
 
@@ -946,7 +1050,7 @@
       item.appendChild(dot);
       item.appendChild(name);
       item.appendChild(removeEl);
-      libraryList.appendChild(item);
+      listEl.appendChild(item);
 
       item.addEventListener("click", function(){ loadTrackFromLibrary(track); });
       removeEl.addEventListener("click", function(e){
@@ -956,6 +1060,11 @@
       bindTooltip(item, "Load \"" + track.title + "\" onto the deck");
       bindTooltip(removeEl, "Remove from library");
     });
+  }
+
+  function renderLibrary(){
+    renderLibraryList(libraryListMusic, libraryEmptyMusic, "music");
+    renderLibraryList(libraryListBgm, libraryEmptyBgm, "bgm");
   }
 
   function removeFromLibrary(track){
@@ -969,8 +1078,8 @@
     renderLibrary();
   }
 
-  bgFileInput.addEventListener("change", function(){
-    var files = Array.prototype.slice.call(bgFileInput.files || []);
+  function handleLibraryFiles(fileInputEl, kind){
+    var files = Array.prototype.slice.call(fileInputEl.files || []);
     if (!files.length){ return; }
 
     files.forEach(function(file){
@@ -978,6 +1087,7 @@
       libCounter++;
       library.push({
         id: "lib-" + libCounter,
+        kind: kind,
         title: deriveTitle(file.name),
         color: PALETTE[(libCounter - 1) % PALETTE.length],
         url: URL.createObjectURL(file)
@@ -986,8 +1096,11 @@
 
     renderLibrary();
     setLibraryOpen(true);
-    bgFileInput.value = "";
-  });
+    fileInputEl.value = "";
+  }
+
+  bgFileInputMusic.addEventListener("change", function(){ handleLibraryFiles(bgFileInputMusic, "music"); });
+  bgFileInputBgm.addEventListener("change", function(){ handleLibraryFiles(bgFileInputBgm, "bgm"); });
 
   function loadTrackFromLibrary(track){
     if (bgAudio){ bgAudio.pause(); }
@@ -1000,9 +1113,14 @@
     trackTitle.textContent = track.title;
     trackTitle.classList.remove("is-empty");
     diskLabel.textContent = track.title;
+    deckStatusText.textContent = (track.kind === "bgm" ? "BGM loaded" : "Music loaded");
+    trackKindPill.hidden = false;
+    trackKindPill.textContent = track.kind === "bgm" ? "BGM" : "MUSIC";
+    trackKindPill.className = "track-kind-pill " + (track.kind === "bgm" ? "is-bgm" : "is-music");
     timeNow.textContent = "0:00";
     timeEnd.textContent = "0:00";
     trackScrub.value = 0;
+    trackScrub.style.setProperty("--fill", "0%");
 
     bgAudio.addEventListener("loadedmetadata", function(){
       timeEnd.textContent = formatTime(bgAudio.duration);
@@ -1012,6 +1130,8 @@
       if (scrubDragging) return;
       timeNow.textContent = formatTime(bgAudio.currentTime);
       trackScrub.value = bgAudio.currentTime;
+      var pct = bgAudio.duration ? (bgAudio.currentTime / bgAudio.duration) * 100 : 0;
+      trackScrub.style.setProperty("--fill", pct + "%");
     });
 
     var p = bgAudio.play();
@@ -1044,6 +1164,7 @@
     bgAudio.currentTime = 0;
     timeNow.textContent = formatTime(0);
     trackScrub.value = 0;
+    trackScrub.style.setProperty("--fill", "0%");
   });
 
   trackMuteBtn.addEventListener("click", function(){
@@ -1056,6 +1177,8 @@
   trackScrub.addEventListener("pointerdown", function(){ scrubDragging = true; });
   trackScrub.addEventListener("input", function(){
     timeNow.textContent = formatTime(Number(trackScrub.value));
+    var max = Number(trackScrub.max) || 1;
+    trackScrub.style.setProperty("--fill", ((Number(trackScrub.value) / max) * 100) + "%");
   });
   trackScrub.addEventListener("change", function(){
     if (bgAudio) bgAudio.currentTime = Number(trackScrub.value);
@@ -1066,10 +1189,12 @@
   function setTrackVolume(v){
     trackVolumeFraction = v / 100;
     deckTrackVol.value = v;
+    deckTrackVol.style.setProperty("--fill", v + "%");
     deckTrackVolReadout.textContent = v + "%";
     if (bgAudio) bgAudio.volume = effectiveTrackVolume();
   }
   deckTrackVol.addEventListener("input", function(){ setTrackVolume(Number(deckTrackVol.value)); });
+  deckTrackVol.style.setProperty("--fill", deckTrackVol.value + "%");
 
   dropVolSlider.addEventListener("input", function(){
     var v = Number(dropVolSlider.value);
