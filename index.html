@@ -462,7 +462,7 @@
           <li>Tap a pad once to fire it once. Hold a pad to loop it until you let go.</li>
           <li>The right-hand <strong>deck</strong> holds your background track — drag its left edge to resize.</li>
           <li>Tap the hamburger to open your <strong>library</strong>, add audio files, then tap any track to load it onto the deck.</li>
-          <li>Adding a new track to the library while one is playing stops it first.</li>
+          <li>Adding new files to the library never interrupts whatever's already playing.</li>
           <li>Loading a track shows a spinning disk, a progress bar, and its own volume slider.</li>
           <li>Playing a drop ducks the track to 80% automatically, then brings it back up.</li>
           <li>Hover any control for a moment to see what it does.</li>
@@ -972,12 +972,6 @@
   bgFileInput.addEventListener("change", function(){
     var files = Array.prototype.slice.call(bgFileInput.files || []);
     if (!files.length){ return; }
-
-    // Adding to the library while a track is playing stops it first.
-    if (bgAudio && !bgAudio.paused){
-      bgAudio.pause();
-      setTrackPlayingUI(false);
-    }
 
     files.forEach(function(file){
       if (file.type.indexOf("audio") === -1 && !/\.(mp3|wav|ogg|m4a|aac|flac|webm)$/i.test(file.name)) return;
