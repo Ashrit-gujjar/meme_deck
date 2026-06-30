@@ -277,8 +277,12 @@
     content:""; position:absolute; bottom:6px; width:min(150px,62%); height:14px; border-radius:50%;
     background:radial-gradient(ellipse at center, rgba(0,0,0,0.45), transparent 70%); z-index:-1;
   }
+  .disk-visualizer{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(248px, 104%); aspect-ratio:1/1; z-index:1; pointer-events:none;
+  }
   .disk{
-    width:min(180px, 76%); aspect-ratio:1/1; border-radius:50%; position:relative;
+    width:min(180px, 76%); aspect-ratio:1/1; border-radius:50%; position:relative; z-index:2;
     background:
       repeating-conic-gradient(from 0deg, rgba(255,255,255,0.05) 0deg 1.2deg, transparent 1.2deg 6deg),
       radial-gradient(circle at 38% 32%, rgba(255,255,255,0.08), transparent 45%),
@@ -364,6 +368,19 @@
     font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.1em; color:var(--text-faint); white-space:nowrap;
   }
   .deck-vol-readout{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); width:30px; text-align:right; }
+
+  .visualizer-panel{
+    flex:1; min-height:96px; margin:0 18px 20px; padding:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.022), rgba(255,255,255,0.004));
+    border:1px solid var(--line); border-radius:14px;
+    display:flex; flex-direction:column;
+  }
+  .visualizer-panel-label{
+    font-family:var(--font-mono); font-size:9px; letter-spacing:0.16em; color:var(--text-faint);
+    margin-bottom:8px;
+  }
+  .visualizer-canvas-wrap{ flex:1; min-height:60px; }
+  #barVisualizer{ width:100%; height:100%; display:block; }
 
   /* ---------- LIBRARY PANEL ---------- */
   .library-panel{
@@ -635,6 +652,7 @@
 
       <div class="now-playing-card">
         <div class="disk-wrap">
+          <canvas class="disk-visualizer" id="diskVisualizer"></canvas>
           <div class="disk" id="disk">
             <div class="disk-label"><span id="diskLabel">No track</span></div>
           </div>
@@ -647,7 +665,7 @@
 
         <div class="transport-row">
           <button class="transport-btn" id="trackRewindBtn" title="Back to start">⟲</button>
-          <button class="transport-btn transport-btn--play" id="trackToggleBtn" title="Play / pause track">
+          <button class="transport-btn transport-btn--play" id="trackToggleBtn" title="Play / pause track (Space)">
             <span id="trackToggleIcon">▶</span>
           </button>
           <button class="transport-btn" id="trackMuteBtn" title="Mute / unmute track">🔊</button>
@@ -665,7 +683,15 @@
         <input type="range" class="deck-range" id="deckTrackVol" min="0" max="100" value="70">
         <span class="deck-vol-readout" id="deckTrackVolReadout">70%</span>
       </div>
+
+      <div class="visualizer-panel">
+        <span class="visualizer-panel-label">SPECTRUM</span>
+        <div class="visualizer-canvas-wrap">
+          <canvas id="barVisualizer"></canvas>
+        </div>
+      </div>
     </aside>
+
   </div>
 
   <input type="file" id="fileInput" accept="audio/*" multiple hidden>
@@ -715,6 +741,8 @@
   var timeEnd = document.getElementById("timeEnd");
   var deckTrackVol = document.getElementById("deckTrackVol");
   var deckTrackVolReadout = document.getElementById("deckTrackVolReadout");
+  var barCanvas = document.getElementById("barVisualizer");
+  var diskCanvas = document.getElementById("diskVisualizer");
 
   var stopAllBtn = document.getElementById("stopAllBtn");
   var dropVolSlider = document.getElementById("dropVol");
@@ -1102,6 +1130,36 @@
   bgFileInputMusic.addEventListener("change", function(){ handleLibraryFiles(bgFileInputMusic, "music"); });
   bgFileInputBgm.addEventListener("change", function(){ handleLibraryFiles(bgFileInputBgm, "bgm"); });
 
+  // ---------- audio analysis graph ----------
+  var audioCtx = null;
+  var analyser = null;
+  var sourceNode = null;
+  var freqData = null;
+
+  function ensureAudioGraph(){
+    if (!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.78;
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+    }
+    if (audioCtx.state === "suspended"){ audioCtx.resume().catch(function(){}); }
+  }
+
+  function attachAnalyser(audioEl){
+    ensureAudioGraph();
+    if (!audioCtx) return;
+    if (sourceNode){ try{ sourceNode.disconnect(); }catch(e){} }
+    try{
+      sourceNode = audioCtx.createMediaElementSource(audioEl);
+      sourceNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    } catch(e){ sourceNode = null; }
+  }
+
   function loadTrackFromLibrary(track){
     if (bgAudio){ bgAudio.pause(); }
     bgAudio = new Audio(track.url);
@@ -1109,6 +1167,7 @@
     bgAudio.volume = effectiveTrackVolume();
     bgDucked = false;
     activeLibraryId = track.id;
+    attachAnalyser(bgAudio);
 
     trackTitle.textContent = track.title;
     trackTitle.classList.remove("is-empty");
@@ -1147,8 +1206,9 @@
     disk.classList.toggle("is-spinning", isPlaying);
   }
 
-  trackToggleBtn.addEventListener("click", function(){
+  function toggleTrackPlayback(){
     if (!bgAudio) return;
+    ensureAudioGraph();
     if (bgAudio.paused){
       var p = bgAudio.play();
       if (p && p.then) p.then(function(){ setTrackPlayingUI(true); });
@@ -1157,6 +1217,21 @@
       bgAudio.pause();
       setTrackPlayingUI(false);
     }
+  }
+
+  trackToggleBtn.addEventListener("click", toggleTrackPlayback);
+
+  // Spacebar plays/pauses the background track, as long as the user
+  // isn't mid-interaction with a button, slider, or an open dialog.
+  window.addEventListener("keydown", function(e){
+    if (e.code !== "Space" && e.key !== " ") return;
+    var tag = (e.target && e.target.tagName) || "";
+    if (["INPUT", "TEXTAREA", "BUTTON", "SELECT"].indexOf(tag) !== -1) return;
+    if (onboardOverlay.classList.contains("is-visible")) return;
+    if (confirmOverlay.classList.contains("is-visible")) return;
+    if (!bgAudio) return;
+    e.preventDefault();
+    toggleTrackPlayback();
   });
 
   trackRewindBtn.addEventListener("click", function(){
@@ -1243,7 +1318,115 @@
     window.addEventListener("pointercancel", stopDrag);
   })();
 
-  // ---------- first-time walkthrough ----------
+  // ---------- audio visualizers ----------
+  (function(){
+    var BAR_COUNT = 44;
+    var levels = new Array(BAR_COUNT).fill(0.02);
+    var barCtx = barCanvas ? barCanvas.getContext("2d") : null;
+    var diskCtx = diskCanvas ? diskCanvas.getContext("2d") : null;
+
+    function fitCanvas(canvas){
+      var rect = canvas.getBoundingClientRect();
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = Math.max(1, Math.round(rect.width * dpr));
+      var h = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      if (h < r * 2) r = Math.max(0, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function sampleLevels(){
+      var playing = !!(bgAudio && !bgAudio.paused && analyser && freqData);
+      if (playing) analyser.getByteFrequencyData(freqData);
+      for (var i = 0; i < BAR_COUNT; i++){
+        var target = 0.02;
+        if (playing){
+          var idx = Math.floor((i / BAR_COUNT) * freqData.length * 0.82);
+          target = Math.max(0.02, freqData[idx] / 255);
+        }
+        var rate = target > levels[i] ? 0.5 : 0.1;
+        levels[i] += (target - levels[i]) * rate;
+      }
+    }
+
+    function drawBars(){
+      if (!barCtx) return;
+      fitCanvas(barCanvas);
+      var w = barCanvas.width, h = barCanvas.height;
+      barCtx.clearRect(0, 0, w, h);
+      var gap = w * 0.007;
+      var barW = (w - gap * (BAR_COUNT - 1)) / BAR_COUNT;
+      var spin = (performance.now() / 45) % 360;
+      for (var i = 0; i < BAR_COUNT; i++){
+        var lvl = levels[i];
+        var barH = Math.max(h * 0.025, lvl * h * 0.94);
+        var x = i * (barW + gap);
+        var y = h - barH;
+        var hue = (i / BAR_COUNT) * 300 + spin;
+        var grad = barCtx.createLinearGradient(0, y, 0, h);
+        grad.addColorStop(0, "hsla(" + (hue % 360) + ",95%,65%,0.95)");
+        grad.addColorStop(1, "hsla(" + (hue % 360) + ",95%,42%,0.5)");
+        barCtx.fillStyle = grad;
+        roundRect(barCtx, x, y, barW, barH, Math.min(barW / 2, 4 * (w / 600)));
+        barCtx.fill();
+      }
+    }
+
+    function drawDiskRing(){
+      if (!diskCtx) return;
+      fitCanvas(diskCanvas);
+      var w = diskCanvas.width, h = diskCanvas.height;
+      diskCtx.clearRect(0, 0, w, h);
+      var cx = w / 2, cy = h / 2;
+      var baseR = Math.min(w, h) * 0.365;
+      var maxLen = Math.min(w, h) * 0.135;
+      var spin = (performance.now() / 55) % 360;
+      diskCtx.lineCap = "round";
+      for (var i = 0; i < BAR_COUNT; i++){
+        var lvl = levels[i];
+        var len = maxLen * 0.16 + lvl * maxLen;
+        var angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2;
+        var x1 = cx + Math.cos(angle) * baseR;
+        var y1 = cy + Math.sin(angle) * baseR;
+        var x2 = cx + Math.cos(angle) * (baseR + len);
+        var y2 = cy + Math.sin(angle) * (baseR + len);
+        var hue = (i / BAR_COUNT) * 300 + spin;
+        diskCtx.strokeStyle = "hsla(" + (hue % 360) + ",95%,62%,0.92)";
+        diskCtx.lineWidth = Math.max(1.4, (w / BAR_COUNT) * 0.32);
+        diskCtx.beginPath();
+        diskCtx.moveTo(x1, y1);
+        diskCtx.lineTo(x2, y2);
+        diskCtx.stroke();
+      }
+    }
+
+    function tick(){
+      sampleLevels();
+      drawBars();
+      drawDiskRing();
+      requestAnimationFrame(tick);
+    }
+
+    if (barCtx || diskCtx) requestAnimationFrame(tick);
+
+    if (window.ResizeObserver && deck){
+      var ro = new ResizeObserver(function(){
+        if (barCanvas) fitCanvas(barCanvas);
+        if (diskCanvas) fitCanvas(diskCanvas);
+      });
+      ro.observe(deck);
+    }
+  })();
+
   onboardOverlay.classList.add("is-visible");
   onboardDismissBtn.addEventListener("click", function(){
     onboardOverlay.classList.remove("is-visible");
