@@ -28,14 +28,14 @@
   }
 
   *{ box-sizing:border-box; }
-  html,body{ touch-action:manipulation; height:100%; }
+  html,body{ touch-action:manipulation; height:100%; overflow:hidden; }
 
   body{
-    margin:0; min-height:100vh;
+    margin:0; height:100vh;
     background-color:var(--bg-void);
     color:var(--text-primary);
     font-family:var(--font-body);
-    overflow-x:hidden;
+    overflow:hidden;
     -webkit-font-smoothing:antialiased;
   }
 
@@ -114,15 +114,16 @@
   }
 
   /* ================= APP LAYOUT ================= */
-  .app{ position:relative; z-index:1; display:flex; min-height:100vh; }
+  .app{ position:relative; z-index:1; display:flex; height:100vh; }
 
-  .main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+  .main{ flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 
   .topbar{
     display:flex; align-items:center; gap:16px; padding:16px 24px;
     border-bottom:1px solid var(--line);
     background:linear-gradient(180deg, rgba(18,20,30,0.85), rgba(18,20,30,0.45));
     backdrop-filter:blur(6px);
+    flex-shrink:0;
   }
   .brand{ display:flex; flex-direction:column; line-height:1.1; margin-right:auto; }
   .brand-mark{
@@ -158,13 +159,13 @@
   }
 
   /* ---------- STAGE / PAD GRID ---------- */
-  .stage{ padding:28px 24px 48px; flex:1; }
+  .stage{ padding:28px 24px 48px; flex:1; min-height:0; overflow-y:auto; }
   .empty-hint{ display:none; text-align:center; max-width:360px; margin:0 auto 28px; }
   .empty-title{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:0 0 8px; }
   .empty-sub{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0; }
 
   body.is-empty .topbar .fader-unit, body.is-empty .stopall-btn{ visibility:hidden; }
-  body.is-empty .stage{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  body.is-empty .stage{ min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   body.is-empty .empty-hint{ display:block; }
   body.is-empty .pad-grid{ display:flex; }
   body.is-empty .pad--add{ width:148px; height:148px; font-size:46px; }
@@ -227,18 +228,19 @@
 
   .deck{
     flex:0 0 var(--deck-w); width:var(--deck-w); min-width:240px; max-width:560px;
+    height:100vh;
     border-left:1px solid var(--line);
     background:
       radial-gradient(circle at 85% -10%, rgba(0,238,255,0.05), transparent 50%),
       linear-gradient(180deg, rgba(16,18,28,0.95), rgba(10,11,18,0.92));
     backdrop-filter:blur(10px);
     display:flex; flex-direction:column;
-    overflow-y:auto; position:relative;
+    overflow:hidden; position:relative;
   }
 
   .deck-heading{
     display:flex; align-items:center; justify-content:space-between;
-    padding:18px 20px; border-bottom:1px solid var(--line);
+    padding:14px 20px; border-bottom:1px solid var(--line);
     flex-shrink:0;
   }
   .deck-heading-text{ display:flex; flex-direction:column; gap:2px; }
@@ -266,13 +268,14 @@
 
   /* ---------- NOW PLAYING CARD ---------- */
   .now-playing-card{
-    margin:18px 18px 0; padding:24px 18px 18px;
+    margin:14px 18px 0; padding:clamp(10px,2vh,24px) 18px clamp(10px,2vh,18px);
     background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
     border:1px solid var(--line); border-radius:18px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(0,0,0,0.3);
+    flex-shrink:0;
   }
 
-  .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:0 0 20px; position:relative; }
+  .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:0 0 clamp(8px,2vh,20px); position:relative; }
   .disk-wrap::after{
     content:""; position:absolute; bottom:6px; width:min(150px,62%); height:14px; border-radius:50%;
     background:radial-gradient(ellipse at center, rgba(0,0,0,0.45), transparent 70%); z-index:-1;
@@ -282,7 +285,7 @@
     width:min(248px, 104%); aspect-ratio:1/1; z-index:1; pointer-events:none;
   }
   .disk{
-    width:min(180px, 76%); aspect-ratio:1/1; border-radius:50%; position:relative; z-index:2;
+    width:clamp(96px, 18vh, 180px); aspect-ratio:1/1; border-radius:50%; position:relative; z-index:2;
     background:
       repeating-conic-gradient(from 0deg, rgba(255,255,255,0.05) 0deg 1.2deg, transparent 1.2deg 6deg),
       radial-gradient(circle at 38% 32%, rgba(255,255,255,0.08), transparent 45%),
@@ -313,7 +316,7 @@
   }
   .disk-label span{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-top:14px; }
 
-  .track-meta{ text-align:center; margin-bottom:18px; }
+  .track-meta{ text-align:center; margin-bottom:clamp(8px,1.6vh,18px); }
   .track-kind-pill{
     display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:9.5px;
     letter-spacing:0.1em; color:var(--text-faint); background:var(--bg-panel-2); border:1px solid var(--line);
@@ -327,7 +330,7 @@
   }
   .track-title.is-empty{ color:var(--text-faint); font-weight:400; font-family:var(--font-body); }
 
-  .transport-row{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px; }
+  .transport-row{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:clamp(8px,1.6vh,16px); }
   .transport-btn{
     width:42px; height:42px; border-radius:50%; background:var(--bg-panel-2); border:1px solid var(--line);
     display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--text-dim);
@@ -362,7 +365,7 @@
     box-shadow:0 0 0 3px rgba(0,238,255,0.18), 0 2px 6px rgba(0,0,0,0.4); cursor:pointer;
   }
 
-  .deck-vol-row{ display:flex; align-items:center; gap:11px; margin:18px 18px 16px; }
+  .deck-vol-row{ display:flex; align-items:center; gap:11px; margin:clamp(10px,1.6vh,18px) 18px clamp(8px,1.4vh,16px); flex-shrink:0; }
   .deck-vol-row label{
     display:flex; align-items:center; gap:5px;
     font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.1em; color:var(--text-faint); white-space:nowrap;
@@ -370,16 +373,16 @@
   .deck-vol-readout{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); width:30px; text-align:right; }
 
   .visualizer-panel{
-    flex:1; min-height:96px; margin:0 18px 20px; padding:12px;
+    flex:1 1 auto; min-height:0; margin:0 18px 16px; padding:12px;
     background:linear-gradient(180deg, rgba(255,255,255,0.022), rgba(255,255,255,0.004));
     border:1px solid var(--line); border-radius:14px;
     display:flex; flex-direction:column;
   }
   .visualizer-panel-label{
     font-family:var(--font-mono); font-size:9px; letter-spacing:0.16em; color:var(--text-faint);
-    margin-bottom:8px;
+    margin-bottom:8px; flex-shrink:0;
   }
-  .visualizer-canvas-wrap{ flex:1; min-height:60px; }
+  .visualizer-canvas-wrap{ flex:1; min-height:0; }
   #barVisualizer{ width:100%; height:100%; display:block; }
 
   /* ---------- LIBRARY PANEL ---------- */
@@ -458,6 +461,7 @@
   .modal-panel{
     background:var(--bg-panel-2); border:1px solid var(--line); border-radius:18px;
     padding:28px 26px; max-width:380px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.55);
+    max-height:86vh; overflow-y:auto;
   }
   .modal-title{ font-family:var(--font-display); font-size:18px; font-weight:600; margin:0 0 14px; }
   .modal-body{ font-size:13.5px; color:var(--text-dim); line-height:1.65; margin:0 0 20px; }
@@ -472,20 +476,20 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width: 860px){
-    .app{ flex-direction:column; }
+    .app{ flex-direction:column; height:100vh; }
     .resize-handle{ display:none; }
+    .main{ order:1; flex:1 1 50%; min-height:0; }
     .deck{
-      flex:0 0 auto; width:100% !important; max-width:none; border-left:none; border-top:1px solid var(--line);
-      order:2;
+      flex:1 1 50%; width:100% !important; max-width:none; height:auto; border-left:none; border-top:1px solid var(--line);
+      order:2; min-height:0;
     }
-    .main{ order:1; }
-    .disk{ width:min(150px, 50%); }
+    .disk{ width:clamp(80px, 14vh, 150px); }
   }
   @media (max-width: 480px){
     .topbar{ padding:14px 16px; flex-wrap:wrap; }
     .stage{ padding:20px 16px 40px; }
     .pad-grid{ grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:12px; }
-    .deck{ padding:16px 14px 20px; }
+    .deck{ padding:0; }
   }
 </style>
 </head>
