@@ -245,6 +245,57 @@
   }
   .deck-load-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
 
+  /* ---------- LIBRARY PANEL ---------- */
+  .deck{ position:relative; }
+  .hamburger-btn{
+    width:36px; height:36px; border-radius:9px; background:var(--bg-panel-2); border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    flex-shrink:0; transition:border-color .15s;
+  }
+  .hamburger-btn:hover{ border-color:var(--accent-cyan); }
+  .hamburger-btn span{ width:16px; height:2px; background:var(--text-primary); border-radius:2px; transition:transform .2s, opacity .2s; }
+  .hamburger-btn.is-open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+  .hamburger-btn.is-open span:nth-child(2){ opacity:0; }
+  .hamburger-btn.is-open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
+
+  .library-panel{
+    position:absolute; top:0; right:0; bottom:0; width:min(280px, 86%); z-index:8;
+    background:linear-gradient(180deg, rgba(20,22,33,0.97), rgba(13,14,22,0.97));
+    border-left:1px solid var(--line); box-shadow:-14px 0 34px rgba(0,0,0,0.45);
+    display:flex; flex-direction:column; padding:18px 14px;
+    transform:translateX(100%); transition:transform .26s ease;
+  }
+  .library-panel.is-open{ transform:translateX(0); }
+
+  .library-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .library-title{ font-family:var(--font-display); font-size:14px; font-weight:600; }
+  .library-close{ width:28px; height:28px; border-radius:8px; color:var(--text-dim); font-size:16px; display:flex; align-items:center; justify-content:center; }
+  .library-close:hover{ color:var(--text-primary); }
+
+  .library-add-btn{
+    width:100%; padding:10px 12px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:14px;
+    background:var(--bg-panel-2); border:1px dashed rgba(255,255,255,0.22); color:var(--text-dim);
+    transition:border-color .15s, color .15s;
+  }
+  .library-add-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
+
+  .library-list{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+  .library-empty{ font-size:12.5px; color:var(--text-faint); text-align:center; padding:24px 8px; line-height:1.6; }
+
+  .library-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px;
+    background:var(--bg-panel-2); border:1px solid transparent; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .library-item:hover{ border-color:var(--line); }
+  .library-item.is-active{ border-color:var(--accent-cyan); background:rgba(0,238,255,0.08); }
+  .library-item-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .library-item-name{ flex:1; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .library-item-remove{
+    width:22px; height:22px; border-radius:50%; flex-shrink:0; color:var(--text-faint);
+    display:flex; align-items:center; justify-content:center; font-size:13px; opacity:0.6;
+  }
+  .library-item-remove:hover{ opacity:1; color:#fff; }
+
   .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:6px 0 18px; }
   .disk{
     width:min(190px, 80%); aspect-ratio:1/1; border-radius:50%; position:relative;
@@ -410,6 +461,8 @@
           <li>Tap <strong>+</strong> to load a meme sound from your files.</li>
           <li>Tap a pad once to fire it once. Hold a pad to loop it until you let go.</li>
           <li>The right-hand <strong>deck</strong> holds your background track — drag its left edge to resize.</li>
+          <li>Tap the hamburger to open your <strong>library</strong>, add audio files, then tap any track to load it onto the deck.</li>
+          <li>Adding a new track to the library while one is playing stops it first.</li>
           <li>Loading a track shows a spinning disk, a progress bar, and its own volume slider.</li>
           <li>Playing a drop ducks the track to 80% automatically, then brings it back up.</li>
           <li>Hover any control for a moment to see what it does.</li>
@@ -468,9 +521,23 @@
     <aside class="deck" id="deck" style="--deck-w-init:1">
       <div class="deck-heading">
         <span class="deck-eyebrow">TRACK DECK</span>
+        <button class="hamburger-btn" id="libraryHamburger" aria-label="Toggle library">
+          <span></span><span></span><span></span>
+        </button>
       </div>
 
-      <button class="deck-load-btn" id="loadTrackBtn">＋ Load background track</button>
+      <button class="deck-load-btn" id="loadTrackBtn">＋ Add track to library</button>
+
+      <div class="library-panel" id="libraryPanel">
+        <div class="library-header">
+          <span class="library-title">LIBRARY</span>
+          <button class="library-close" id="libraryCloseBtn" aria-label="Close library">×</button>
+        </div>
+        <button class="library-add-btn" id="libraryAddBtn">＋ Add audio files</button>
+        <div class="library-list" id="libraryList">
+          <p class="library-empty" id="libraryEmptyHint">No tracks yet.<br>Add audio files to build your library.</p>
+        </div>
+      </div>
 
       <div class="disk-wrap">
         <div class="disk" id="disk">
@@ -505,7 +572,7 @@
   </div>
 
   <input type="file" id="fileInput" accept="audio/*" multiple hidden>
-  <input type="file" id="bgFileInput" accept="audio/*" hidden>
+  <input type="file" id="bgFileInput" accept="audio/*" multiple hidden>
 
 <script>
 (function(){
@@ -555,6 +622,13 @@
 
   var deck = document.getElementById("deck");
   var resizeHandle = document.getElementById("resizeHandle");
+
+  var libraryHamburger = document.getElementById("libraryHamburger");
+  var libraryPanel = document.getElementById("libraryPanel");
+  var libraryCloseBtn = document.getElementById("libraryCloseBtn");
+  var libraryAddBtn = document.getElementById("libraryAddBtn");
+  var libraryList = document.getElementById("libraryList");
+  var libraryEmptyHint = document.getElementById("libraryEmptyHint");
 
   var onboardOverlay = document.getElementById("onboardOverlay");
   var onboardDismissBtn = document.getElementById("onboardDismiss");
@@ -658,7 +732,9 @@
   }
 
   bindTooltip(addPadBtn, "Add a meme sound from your files");
-  bindTooltip(loadTrackBtn, "Load a background track into the deck");
+  bindTooltip(loadTrackBtn, "Add a track to your library");
+  bindTooltip(libraryHamburger, "Open or close your track library");
+  bindTooltip(libraryAddBtn, "Add more audio files to the library");
   bindTooltip(trackToggleBtn, "Play or pause the background track");
   bindTooltip(trackRewindBtn, "Jump back to the start of the track");
   bindTooltip(trackMuteBtn, "Mute or unmute the track");
@@ -829,24 +905,110 @@
     fileInput.value = "";
   });
 
-  // ---------- background track ----------
+  // ---------- track library ----------
+  var library = [];
+  var libCounter = 0;
+  var activeLibraryId = null;
+
+  function setLibraryOpen(open){
+    libraryPanel.classList.toggle("is-open", open);
+    libraryHamburger.classList.toggle("is-open", open);
+  }
+
+  libraryHamburger.addEventListener("click", function(){
+    setLibraryOpen(!libraryPanel.classList.contains("is-open"));
+  });
+  libraryCloseBtn.addEventListener("click", function(){ setLibraryOpen(false); });
   loadTrackBtn.addEventListener("click", function(){ bgFileInput.click(); });
+  libraryAddBtn.addEventListener("click", function(){ bgFileInput.click(); });
+
+  function renderLibrary(){
+    libraryEmptyHint.style.display = library.length ? "none" : "block";
+    Array.prototype.slice.call(libraryList.querySelectorAll(".library-item")).forEach(function(n){ n.remove(); });
+
+    library.forEach(function(track){
+      var item = document.createElement("div");
+      item.className = "library-item" + (track.id === activeLibraryId ? " is-active" : "");
+
+      var dot = document.createElement("span");
+      dot.className = "library-item-dot";
+      dot.style.background = track.color;
+
+      var name = document.createElement("span");
+      name.className = "library-item-name";
+      name.textContent = track.title;
+
+      var removeEl = document.createElement("span");
+      removeEl.className = "library-item-remove";
+      removeEl.textContent = "×";
+      removeEl.title = "Remove from library";
+
+      item.appendChild(dot);
+      item.appendChild(name);
+      item.appendChild(removeEl);
+      libraryList.appendChild(item);
+
+      item.addEventListener("click", function(){ loadTrackFromLibrary(track); });
+      removeEl.addEventListener("click", function(e){
+        e.stopPropagation();
+        removeFromLibrary(track);
+      });
+      bindTooltip(item, "Load \"" + track.title + "\" onto the deck");
+      bindTooltip(removeEl, "Remove from library");
+    });
+  }
+
+  function removeFromLibrary(track){
+    if (track.id === activeLibraryId && bgAudio){
+      bgAudio.pause();
+      setTrackPlayingUI(false);
+    }
+    URL.revokeObjectURL(track.url);
+    library = library.filter(function(t){ return t.id !== track.id; });
+    if (track.id === activeLibraryId) activeLibraryId = null;
+    renderLibrary();
+  }
 
   bgFileInput.addEventListener("change", function(){
-    var file = bgFileInput.files && bgFileInput.files[0];
-    if (!file) return;
+    var files = Array.prototype.slice.call(bgFileInput.files || []);
+    if (!files.length){ return; }
 
-    if (bgAudio){ bgAudio.pause(); URL.revokeObjectURL(bgAudio.src); }
-    var url = URL.createObjectURL(file);
-    bgAudio = new Audio(url);
+    // Adding to the library while a track is playing stops it first.
+    if (bgAudio && !bgAudio.paused){
+      bgAudio.pause();
+      setTrackPlayingUI(false);
+    }
+
+    files.forEach(function(file){
+      if (file.type.indexOf("audio") === -1 && !/\.(mp3|wav|ogg|m4a|aac|flac|webm)$/i.test(file.name)) return;
+      libCounter++;
+      library.push({
+        id: "lib-" + libCounter,
+        title: deriveTitle(file.name),
+        color: PALETTE[(libCounter - 1) % PALETTE.length],
+        url: URL.createObjectURL(file)
+      });
+    });
+
+    renderLibrary();
+    setLibraryOpen(true);
+    bgFileInput.value = "";
+  });
+
+  function loadTrackFromLibrary(track){
+    if (bgAudio){ bgAudio.pause(); }
+    bgAudio = new Audio(track.url);
     bgAudio.loop = true;
     bgAudio.volume = effectiveTrackVolume();
     bgDucked = false;
+    activeLibraryId = track.id;
 
-    var title = deriveTitle(file.name);
-    trackTitle.textContent = title;
+    trackTitle.textContent = track.title;
     trackTitle.classList.remove("is-empty");
-    diskLabel.textContent = title;
+    diskLabel.textContent = track.title;
+    timeNow.textContent = "0:00";
+    timeEnd.textContent = "0:00";
+    trackScrub.value = 0;
 
     bgAudio.addEventListener("loadedmetadata", function(){
       timeEnd.textContent = formatTime(bgAudio.duration);
@@ -862,8 +1024,9 @@
     if (p && p.then){ p.then(function(){ setTrackPlayingUI(true); }).catch(function(){ setTrackPlayingUI(false); }); }
     else { setTrackPlayingUI(true); }
 
-    bgFileInput.value = "";
-  });
+    renderLibrary();
+    setLibraryOpen(false);
+  }
 
   function setTrackPlayingUI(isPlaying){
     trackToggleIcon.textContent = isPlaying ? "❚❚" : "▶";
