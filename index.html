@@ -12,7 +12,7 @@
     --bg-void:#070810;
     --bg-panel:#12141e;
     --bg-panel-2:#181b27;
-    --line: rgba(255,255,255,0.07);
+    --line: rgba(255,255,255,0.08);
     --text-primary:#e9edf3;
     --text-dim:#8a90a3;
     --text-faint:#565d70;
@@ -20,24 +20,19 @@
     --accent-pink:#ff2f7b;
     --accent-amber:#ffb020;
     --accent-violet:#8b6bff;
+    --accent-green:#39ff7a;
     --font-display:'Space Grotesk','Segoe UI',sans-serif;
     --font-body:'Inter','Segoe UI',sans-serif;
     --font-mono:'JetBrains Mono','Consolas',monospace;
+    --deck-w: 340px;
   }
 
   *{ box-sizing:border-box; }
-  html,body{ touch-action:manipulation; }
+  html,body{ touch-action:manipulation; height:100%; }
 
   body{
-    margin:0;
-    min-height:100vh;
+    margin:0; min-height:100vh;
     background-color:var(--bg-void);
-    background-image:
-      radial-gradient(circle at 12% 18%, rgba(0,238,255,0.08), transparent 42%),
-      radial-gradient(circle at 88% 78%, rgba(255,47,123,0.07), transparent 46%),
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size: auto, auto, 44px 44px, 44px 44px;
     color:var(--text-primary);
     font-family:var(--font-body);
     overflow-x:hidden;
@@ -47,12 +42,86 @@
   button{ font-family:inherit; border:none; background:none; color:inherit; cursor:pointer; }
   button:focus-visible, input:focus-visible{ outline:2px solid var(--accent-cyan); outline-offset:2px; }
 
-  /* ---------- DECK BAR (header) ---------- */
-  .deckbar{
-    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
-    padding:16px 24px;
+  /* ================= AMBIENT BACKGROUND ================= */
+  .bg-fx{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .bg-fx .grid-static{
+    position:absolute; inset:0;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:44px 44px; opacity:0.5;
+  }
+
+  .bg-fx .fluid{ position:absolute; filter:blur(54px); opacity:0.30; will-change:transform, border-radius; }
+  .bg-fx .fluid1{ width:460px; height:400px; left:4%; top:10%; background:var(--accent-cyan); animation:fluidMove1 38s ease-in-out infinite, fluidMorph 21s ease-in-out infinite; }
+  .bg-fx .fluid2{ width:400px; height:440px; right:2%; bottom:4%; background:var(--accent-violet); animation:fluidMove2 44s ease-in-out infinite, fluidMorph 27s ease-in-out infinite reverse; }
+  .bg-fx .fluid3{ width:320px; height:320px; left:42%; top:46%; background:var(--accent-pink); animation:fluidMove1 33s ease-in-out infinite reverse, fluidMorph 19s ease-in-out infinite; opacity:0.20; }
+  .bg-fx .fluid4{ width:260px; height:300px; left:18%; bottom:8%; background:var(--accent-amber); animation:fluidMove2 29s ease-in-out infinite, fluidMorph 24s ease-in-out infinite; opacity:0.16; }
+  @keyframes fluidMove1{ 0%{ transform:translate(0,0) scale(1); } 33%{ transform:translate(80px,-55px) scale(1.1); } 66%{ transform:translate(-55px,65px) scale(0.92); } 100%{ transform:translate(0,0) scale(1); } }
+  @keyframes fluidMove2{ 0%{ transform:translate(0,0) scale(1); } 33%{ transform:translate(-65px,45px) scale(0.94); } 66%{ transform:translate(60px,-65px) scale(1.08); } 100%{ transform:translate(0,0) scale(1); } }
+  @keyframes fluidMorph{
+    0%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
+    25%{ border-radius:60% 40% 30% 70% / 55% 60% 40% 45%; }
+    50%{ border-radius:35% 65% 55% 45% / 60% 40% 60% 40%; }
+    75%{ border-radius:55% 45% 40% 60% / 40% 55% 45% 60%; }
+    100%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
+  }
+
+  .bg-fx .beam-rig{ position:absolute; inset:0; mix-blend-mode:screen; }
+  .bg-fx .beam{
+    position:absolute; top:-4%; width:220px; height:120vh;
+    clip-path:polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
+    transform-origin:top center; filter:blur(7px); opacity:0.20;
+    animation:beamSweep ease-in-out infinite; will-change:transform;
+  }
+  .bg-fx .beam1{ left:0%; background:linear-gradient(to bottom, var(--accent-cyan), transparent 70%); animation-duration:9s; }
+  .bg-fx .beam2{ left:26%; background:linear-gradient(to bottom, var(--accent-pink), transparent 70%); animation-duration:12s; animation-delay:-3s; }
+  .bg-fx .beam3{ left:54%; background:linear-gradient(to bottom, var(--accent-violet), transparent 70%); animation-duration:10s; animation-delay:-6s; }
+  .bg-fx .beam4{ left:78%; background:linear-gradient(to bottom, var(--accent-amber), transparent 70%); animation-duration:14s; animation-delay:-1s; }
+  @keyframes beamSweep{ 0%{ transform:rotate(-28deg); } 50%{ transform:rotate(28deg); } 100%{ transform:rotate(-28deg); } }
+
+  .bg-fx .laser{
+    position:absolute; height:2px; width:160vmax; mix-blend-mode:screen; opacity:0.4;
+    animation:laserSweep ease-in-out infinite; will-change:transform;
+  }
+  .bg-fx .laser1{ left:50%; top:84%; transform-origin:0% 50%; background:linear-gradient(90deg, transparent, var(--accent-green), transparent); box-shadow:0 0 8px 1px var(--accent-green); animation-duration:7s; }
+  .bg-fx .laser2{ left:4%; top:92%; transform-origin:0% 50%; background:linear-gradient(90deg, transparent, #ff3b3b, transparent); box-shadow:0 0 8px 1px #ff3b3b; animation-duration:9.5s; animation-delay:-3s; }
+  .bg-fx .laser3{ left:96%; top:88%; transform-origin:100% 50%; background:linear-gradient(90deg, transparent, var(--accent-cyan), transparent); box-shadow:0 0 8px 1px var(--accent-cyan); animation-duration:11s; animation-delay:-5s; }
+  @keyframes laserSweep{ 0%{ transform:rotate(-35deg); } 50%{ transform:rotate(15deg); } 100%{ transform:rotate(-35deg); } }
+
+  .bg-fx .string-wrap{ position:absolute; top:-6px; left:0; width:100%; height:140px; opacity:0.85; }
+  .string-strand{ transform-origin:0% 0%; animation:stringSway ease-in-out infinite; }
+  .string-strand--a{ animation-duration:7s; }
+  .string-strand--b{ animation-duration:9s; animation-direction:alternate-reverse; animation-delay:-2s; }
+  @keyframes stringSway{ 0%{ transform:rotate(-1.6deg); } 50%{ transform:rotate(1.6deg); } 100%{ transform:rotate(-1.6deg); } }
+  .bulb{ animation:bulbTwinkle 2s ease-in-out infinite; filter:drop-shadow(0 0 4px rgba(255,255,255,0.6)); }
+  .string-strand .bulb:nth-of-type(1){ animation-delay:0s; } .string-strand .bulb:nth-of-type(2){ animation-delay:.3s; }
+  .string-strand .bulb:nth-of-type(3){ animation-delay:.6s; } .string-strand .bulb:nth-of-type(4){ animation-delay:.9s; }
+  .string-strand .bulb:nth-of-type(5){ animation-delay:1.2s; } .string-strand .bulb:nth-of-type(6){ animation-delay:1.5s; }
+  .string-strand .bulb:nth-of-type(7){ animation-delay:1.8s; }
+  @keyframes bulbTwinkle{ 0%,100%{ opacity:0.45; } 50%{ opacity:1; } }
+
+  .bg-fx .particle{
+    position:absolute; bottom:-12px; width:3px; height:3px; border-radius:50%;
+    background:var(--accent-cyan); opacity:0; animation:particleRise linear infinite; will-change:transform, opacity;
+  }
+  @keyframes particleRise{
+    0%{ transform:translateY(0) scale(1); opacity:0; }
+    8%{ opacity:0.55; } 92%{ opacity:0.22; }
+    100%{ transform:translateY(-100vh) scale(0.6); opacity:0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg-fx *{ animation:none !important; }
+  }
+
+  /* ================= APP LAYOUT ================= */
+  .app{ position:relative; z-index:1; display:flex; min-height:100vh; }
+
+  .main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+
+  .topbar{
+    display:flex; align-items:center; gap:16px; padding:16px 24px;
     border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg, rgba(18,20,30,0.9), rgba(18,20,30,0.55));
+    background:linear-gradient(180deg, rgba(18,20,30,0.85), rgba(18,20,30,0.45));
     backdrop-filter:blur(6px);
   }
   .brand{ display:flex; flex-direction:column; line-height:1.1; margin-right:auto; }
@@ -63,63 +132,24 @@
   }
   .brand-eyebrow{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.18em; color:var(--text-faint); margin-top:2px; }
 
-  .track-strip{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .track-btn{
-    display:flex; align-items:center; gap:8px;
-    padding:8px 14px; border-radius:10px;
-    background:var(--bg-panel-2); border:1px solid var(--line);
-    font-size:13px; color:var(--text-dim); transition:border-color .15s, color .15s;
-  }
-  .track-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
-  .track-toggle{
-    width:34px; height:34px; border-radius:50%;
-    background:var(--bg-panel-2); border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center; color:var(--text-primary);
-    flex-shrink:0;
-  }
-  .track-toggle:hover{ border-color:var(--accent-cyan); }
-  .track-label{ max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-  .eq-bars{ display:flex; align-items:flex-end; gap:3px; height:16px; }
-  .eq-bars span{
-    width:3px; background:var(--accent-cyan); border-radius:1px; height:4px;
-    animation-play-state:paused; transition:height .15s;
-  }
-  .eq-bars.is-playing span{ animation:eqBounce 0.9s ease-in-out infinite; animation-play-state:running; }
-  .eq-bars span:nth-child(1){ animation-delay:0s; }
-  .eq-bars span:nth-child(2){ animation-delay:.15s; }
-  .eq-bars span:nth-child(3){ animation-delay:.3s; }
-  .eq-bars span:nth-child(4){ animation-delay:.1s; }
-  @keyframes eqBounce{ 0%,100%{ height:4px; } 50%{ height:16px; } }
+  .fader-unit{ display:flex; align-items:center; gap:10px; }
+  .fader-unit label{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--text-faint); white-space:nowrap; }
+  .fader-readout{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); width:32px; }
 
   .stopall-btn{
     padding:10px 16px; border-radius:10px; font-size:12px; font-weight:600; letter-spacing:0.06em;
     background:rgba(255,47,123,0.1); border:1px solid rgba(255,47,123,0.4); color:var(--accent-pink);
-    transition:background .15s;
+    transition:background .15s; white-space:nowrap;
   }
   .stopall-btn:hover{ background:rgba(255,47,123,0.2); }
 
-  /* ---------- FADER RAIL ---------- */
-  .fader-rail{
-    display:flex; gap:28px; flex-wrap:wrap;
-    padding:14px 24px; border-bottom:1px solid var(--line);
-    background:rgba(255,255,255,0.015);
-  }
-  .fader-unit{ display:flex; align-items:center; gap:12px; }
-  .fader-unit label{
-    font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--text-faint);
-    width:76px;
-  }
-  .fader-readout{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); width:34px; }
-
   input[type=range]{
-    -webkit-appearance:none; appearance:none; width:150px; height:5px; border-radius:3px;
-    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
-    outline:none; cursor:pointer;
+    -webkit-appearance:none; appearance:none; width:120px; height:5px; border-radius:3px;
+    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet)); outline:none; cursor:pointer;
   }
   input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none; width:14px; height:22px; border-radius:4px;
-    background:#fff; box-shadow:0 0 10px rgba(0,238,255,0.7); cursor:pointer; border:1px solid rgba(0,0,0,0.2);
+    -webkit-appearance:none; width:14px; height:22px; border-radius:4px; background:#fff;
+    box-shadow:0 0 10px rgba(0,238,255,0.7); cursor:pointer; border:1px solid rgba(0,0,0,0.2);
   }
   input[type=range]::-moz-range-track{ background:transparent; }
   input[type=range]::-moz-range-thumb{
@@ -127,38 +157,31 @@
     box-shadow:0 0 10px rgba(0,238,255,0.7); cursor:pointer; border:1px solid rgba(0,0,0,0.2);
   }
 
-  /* ---------- STAGE / EMPTY STATE ---------- */
-  .stage{ padding:28px 24px 48px; }
+  /* ---------- STAGE / PAD GRID ---------- */
+  .stage{ padding:28px 24px 48px; flex:1; }
   .empty-hint{ display:none; text-align:center; max-width:360px; margin:0 auto 28px; }
-  .empty-title{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:0 0 8px; color:var(--text-primary); }
+  .empty-title{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:0 0 8px; }
   .empty-sub{ font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:0; }
 
-  body.is-empty .deckbar, body.is-empty .fader-rail{ display:none; }
-  body.is-empty .stage{
-    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px;
-  }
+  body.is-empty .topbar .fader-unit, body.is-empty .stopall-btn{ visibility:hidden; }
+  body.is-empty .stage{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   body.is-empty .empty-hint{ display:block; }
   body.is-empty .pad-grid{ display:flex; }
   body.is-empty .pad--add{ width:148px; height:148px; font-size:46px; }
 
-  /* ---------- PAD GRID ---------- */
   .pad-grid{
     display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr));
-    gap:16px; max-width:1100px; margin:0 auto;
+    gap:16px; max-width:1300px; margin:0 auto;
   }
 
   .pad{
     position:relative; aspect-ratio:1/1; border-radius:18px; overflow:hidden;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
     padding:10px; touch-action:none; user-select:none; -webkit-user-select:none;
-    background:var(--bg-panel-2);
-    border:1px solid var(--line);
-    box-shadow:0 0 0 0 rgba(0,0,0,0);
-    transition:transform .08s ease, box-shadow .15s ease;
-    --charge:0;
+    background:var(--bg-panel-2); border:1px solid var(--line);
+    transition:transform .08s ease, box-shadow .15s ease; --charge:0;
   }
   .pad:active{ transform:scale(0.96); }
-
   .pad::before{
     content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     background:conic-gradient(var(--pad-color, var(--accent-cyan)) calc(var(--charge) * 1deg), transparent 0deg);
@@ -166,24 +189,18 @@
     mask:radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
     opacity:0.7;
   }
-
   .pad.is-looping{ box-shadow:0 0 0 2px var(--pad-color, var(--accent-cyan)), 0 0 26px 4px var(--pad-color, var(--accent-cyan)); }
   .pad.is-looping::before{ animation:ringPulse 0.9s ease-in-out infinite; }
   @keyframes ringPulse{ 50%{ opacity:0.4; } }
-
   .pad.is-firing{ box-shadow:0 0 0 2px var(--pad-color, var(--accent-cyan)), 0 0 22px 4px var(--pad-color, var(--accent-cyan)); }
 
   .pad-title{
-    position:relative; z-index:1; font-size:12.5px; font-weight:500; text-align:center;
-    color:var(--text-primary); line-height:1.3;
+    position:relative; z-index:1; font-size:12.5px; font-weight:500; text-align:center; line-height:1.3;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
   }
-
   .pad-remove{
-    position:absolute; top:6px; right:6px; z-index:2;
-    width:22px; height:22px; border-radius:50%;
-    background:rgba(0,0,0,0.45); color:var(--text-dim);
-    display:flex; align-items:center; justify-content:center;
+    position:absolute; top:6px; right:6px; z-index:2; width:22px; height:22px; border-radius:50%;
+    background:rgba(0,0,0,0.45); color:var(--text-dim); display:flex; align-items:center; justify-content:center;
     font-size:13px; line-height:1; opacity:0.55; transition:opacity .15s, color .15s;
   }
   .pad-remove:hover, .pad-remove:active{ opacity:1; color:#fff; }
@@ -197,135 +214,93 @@
   .pad-plus{ font-family:var(--font-display); font-size:34px; font-weight:600; line-height:1; }
   @keyframes breathe{ 0%,100%{ box-shadow:0 0 0 0 rgba(0,238,255,0); } 50%{ box-shadow:0 0 0 7px rgba(0,238,255,0.06); } }
 
-  /* ---------- AMBIENT BACKGROUND ---------- */
-  .deckbar, .fader-rail, .stage{ position:relative; z-index:1; }
+  /* ================= RIGHT DECK (resizable) ================= */
+  .resize-handle{
+    flex:0 0 6px; cursor:col-resize; background:transparent; position:relative; z-index:5;
+    touch-action:none;
+  }
+  .resize-handle::after{
+    content:""; position:absolute; top:0; bottom:0; left:2px; width:2px;
+    background:var(--line); transition:background .15s;
+  }
+  .resize-handle:hover::after, .resize-handle.is-dragging::after{ background:var(--accent-cyan); }
 
-  .bg-fx{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
-  .bg-fx .orb{ position:absolute; border-radius:50%; filter:blur(46px); opacity:0.32; animation:orbDrift ease-in-out infinite alternate; will-change:transform; }
-  .bg-fx .orb1{ width:340px; height:340px; left:-90px; top:-70px; background:var(--accent-cyan); animation-duration:26s; }
-  .bg-fx .orb2{ width:300px; height:300px; right:-70px; top:38%; background:var(--accent-pink); animation-duration:33s; animation-delay:-6s; }
-  .bg-fx .orb3{ width:260px; height:260px; left:32%; bottom:-110px; background:var(--accent-violet); animation-duration:24s; animation-delay:-11s; }
-  @keyframes orbDrift{ 0%{ transform:translate(0,0) scale(1); } 100%{ transform:translate(48px,34px) scale(1.14); } }
+  .deck{
+    flex:0 0 var(--deck-w); width:var(--deck-w); min-width:240px; max-width:560px;
+    border-left:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(18,20,30,0.92), rgba(12,13,20,0.86));
+    backdrop-filter:blur(8px);
+    display:flex; flex-direction:column; padding:20px 18px 24px;
+    overflow-y:auto;
+  }
+  .deck-heading{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+  }
+  .deck-eyebrow{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.18em; color:var(--text-faint); }
 
-  .bg-fx .particle{
-    position:absolute; bottom:-12px; width:3px; height:3px; border-radius:50%;
-    background:var(--accent-cyan); opacity:0; animation:particleRise linear infinite; will-change:transform, opacity;
+  .deck-load-btn{
+    width:100%; padding:12px 14px; border-radius:12px; font-size:13px; font-weight:600;
+    background:var(--bg-panel-2); border:1px solid var(--line); color:var(--text-dim);
+    transition:border-color .15s, color .15s; margin-bottom:18px;
   }
-  @keyframes particleRise{
-    0%{ transform:translateY(0) scale(1); opacity:0; }
-    8%{ opacity:0.55; }
-    92%{ opacity:0.25; }
-    100%{ transform:translateY(-100vh) scale(0.6); opacity:0; }
-  }
+  .deck-load-btn:hover{ border-color:var(--accent-cyan); color:var(--text-primary); }
 
-  /* ---------- FLUID BLOBS ---------- */
-  .bg-fx .fluid{
-    position:absolute; filter:blur(50px); opacity:0.26; will-change:transform, border-radius;
+  .disk-wrap{ display:flex; align-items:center; justify-content:center; padding:6px 0 18px; }
+  .disk{
+    width:min(190px, 80%); aspect-ratio:1/1; border-radius:50%; position:relative;
+    background:
+      radial-gradient(circle at 50% 50%, #060708 0 13%, transparent 13.2%),
+      repeating-radial-gradient(circle at 50% 50%, #1c1f2c 0 2px, #15171f 2px 4px);
+    box-shadow:0 0 0 1px var(--line), 0 18px 34px rgba(0,0,0,0.5), 0 0 28px rgba(0,238,255,0.08);
+    transform:rotate(0deg);
   }
-  .bg-fx .fluid1{
-    width:420px; height:380px; left:6%; top:16%; background:var(--accent-cyan);
-    animation:fluidMove1 38s ease-in-out infinite, fluidMorph 21s ease-in-out infinite;
+  .disk.is-spinning{ animation:diskSpin 6s linear infinite; }
+  @keyframes diskSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  .disk::before{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(0,238,255,0.18), transparent 30%, rgba(139,107,255,0.16) 55%, transparent 80%);
   }
-  .bg-fx .fluid2{
-    width:380px; height:420px; right:4%; bottom:6%; background:var(--accent-violet);
-    animation:fluidMove2 44s ease-in-out infinite, fluidMorph 27s ease-in-out infinite reverse;
+  .disk-label{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:55%; aspect-ratio:1/1; border-radius:50%;
+    background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+    display:flex; align-items:center; justify-content:center; text-align:center; padding:6%;
+    font-size:10.5px; font-weight:600; color:#04141a; line-height:1.25; overflow:hidden;
   }
-  .bg-fx .fluid3{
-    width:300px; height:300px; left:46%; top:54%; background:var(--accent-pink);
-    animation:fluidMove1 33s ease-in-out infinite reverse, fluidMorph 19s ease-in-out infinite;
-    opacity:0.18;
-  }
-  @keyframes fluidMove1{
-    0%{ transform:translate(0,0) scale(1); }
-    33%{ transform:translate(70px,-50px) scale(1.1); }
-    66%{ transform:translate(-50px,60px) scale(0.92); }
-    100%{ transform:translate(0,0) scale(1); }
-  }
-  @keyframes fluidMove2{
-    0%{ transform:translate(0,0) scale(1); }
-    33%{ transform:translate(-60px,40px) scale(0.94); }
-    66%{ transform:translate(55px,-60px) scale(1.08); }
-    100%{ transform:translate(0,0) scale(1); }
-  }
-  @keyframes fluidMorph{
-    0%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
-    25%{ border-radius:60% 40% 30% 70% / 55% 60% 40% 45%; }
-    50%{ border-radius:35% 65% 55% 45% / 60% 40% 60% 40%; }
-    75%{ border-radius:55% 45% 40% 60% / 40% 55% 45% 60%; }
-    100%{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
-  }
+  .disk-label span{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 
-  /* ---------- DJ LIGHT BEAMS ---------- */
-  .bg-fx .beam-rig{ position:absolute; inset:0; mix-blend-mode:screen; }
-  .bg-fx .beam{
-    position:absolute; top:-4%; width:220px; height:120vh;
-    clip-path:polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
-    transform-origin:top center; filter:blur(7px); opacity:0.22;
-    animation:beamSweep ease-in-out infinite; will-change:transform;
+  .track-meta{ text-align:center; margin-bottom:14px; }
+  .track-title{
+    font-size:13.5px; font-weight:600; color:var(--text-primary);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;
   }
-  .bg-fx .beam1{ left:2%; background:linear-gradient(to bottom, var(--accent-cyan), transparent 70%); animation-duration:9s; }
-  .bg-fx .beam2{ left:30%; background:linear-gradient(to bottom, var(--accent-pink), transparent 70%); animation-duration:12s; animation-delay:-3s; }
-  .bg-fx .beam3{ left:60%; background:linear-gradient(to bottom, var(--accent-violet), transparent 70%); animation-duration:10s; animation-delay:-6s; }
-  .bg-fx .beam4{ left:84%; background:linear-gradient(to bottom, var(--accent-amber), transparent 70%); animation-duration:14s; animation-delay:-1s; }
-  @keyframes beamSweep{
-    0%{ transform:rotate(-28deg); }
-    50%{ transform:rotate(28deg); }
-    100%{ transform:rotate(-28deg); }
-  }
+  .track-title.is-empty{ color:var(--text-faint); font-weight:400; }
 
-  /* ---------- LASER SWEEPS ---------- */
-  .bg-fx .laser{
-    position:absolute; height:2px; width:160vmax;
-    mix-blend-mode:screen; opacity:0.45;
-    animation:laserSweep ease-in-out infinite; will-change:transform;
+  .transport-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; }
+  .transport-btn{
+    width:46px; height:46px; border-radius:50%; background:var(--bg-panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text-primary);
+    transition:border-color .15s;
   }
-  .bg-fx .laser1{
-    left:50%; top:88%; transform-origin:0% 50%;
-    background:linear-gradient(90deg, transparent, #39ff7a, transparent);
-    box-shadow:0 0 8px 1px #39ff7a; animation-duration:7s;
-  }
-  .bg-fx .laser2{
-    left:6%; top:94%; transform-origin:0% 50%;
-    background:linear-gradient(90deg, transparent, #ff3b3b, transparent);
-    box-shadow:0 0 8px 1px #ff3b3b; animation-duration:9.5s; animation-delay:-3s;
-  }
-  .bg-fx .laser3{
-    left:94%; top:90%; transform-origin:100% 50%;
-    background:linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-    box-shadow:0 0 8px 1px var(--accent-cyan); animation-duration:11s; animation-delay:-5s;
-  }
-  @keyframes laserSweep{
-    0%{ transform:rotate(-35deg); }
-    50%{ transform:rotate(15deg); }
-    100%{ transform:rotate(-35deg); }
-  }
+  .transport-btn:hover{ border-color:var(--accent-cyan); }
+  .transport-btn--play{ width:54px; height:54px; font-size:18px; background:linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)); color:#04141a; border:none; }
 
-  /* ---------- STRING LIGHTS ---------- */
-  .bg-fx-strings{ position:absolute; top:-10px; left:0; width:100%; height:150px; opacity:0.85; }
-  .string-strand{ transform-origin:0% 0%; animation:stringSway ease-in-out infinite; }
-  .string-strand--a{ animation-duration:7s; }
-  .string-strand--b{ animation-duration:9s; animation-direction:alternate-reverse; animation-delay:-2s; }
-  @keyframes stringSway{
-    0%{ transform:rotate(-1.4deg); }
-    50%{ transform:rotate(1.4deg); }
-    100%{ transform:rotate(-1.4deg); }
-  }
-  .bulb{ animation:bulbTwinkle 2s ease-in-out infinite; filter:drop-shadow(0 0 4px rgba(255,255,255,0.55)); }
-  .string-strand .bulb:nth-of-type(1){ animation-delay:0s; }
-  .string-strand .bulb:nth-of-type(2){ animation-delay:.3s; }
-  .string-strand .bulb:nth-of-type(3){ animation-delay:.6s; }
-  .string-strand .bulb:nth-of-type(4){ animation-delay:.9s; }
-  .string-strand .bulb:nth-of-type(5){ animation-delay:1.2s; }
-  .string-strand .bulb:nth-of-type(6){ animation-delay:1.5s; }
-  @keyframes bulbTwinkle{ 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+  .scrub-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .time-readout{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); width:36px; flex-shrink:0; }
+  .time-readout--end{ text-align:right; }
+  #trackScrub{ flex:1; width:auto; }
+
+  .deck-vol-row{ display:flex; align-items:center; gap:12px; margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
+  .deck-vol-row label{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; color:var(--text-faint); white-space:nowrap; }
+  #deckTrackVol{ flex:1; width:auto; }
+  .deck-vol-readout{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); width:32px; text-align:right; }
 
   /* ---------- TOOLTIP ---------- */
   .tooltip{
     position:fixed; z-index:70; transform:translate(-50%,-100%);
     background:var(--bg-panel-2); border:1px solid var(--accent-cyan); color:var(--text-primary);
     font-size:12px; line-height:1.4; padding:8px 12px; border-radius:8px; max-width:220px;
-    pointer-events:none; opacity:0; transition:opacity .15s ease;
-    box-shadow:0 8px 20px rgba(0,0,0,0.45);
+    pointer-events:none; opacity:0; transition:opacity .15s ease; box-shadow:0 8px 20px rgba(0,0,0,0.45);
   }
   .tooltip.is-visible{ opacity:1; }
   .tooltip.tooltip--below{ transform:translate(-50%,0); }
@@ -352,27 +327,70 @@
   .modal-btn--ghost:hover{ border-color:var(--text-dim); color:var(--text-primary); }
   .modal-btn--accent{ background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet)); color:#04141a; border:none; }
 
-  @media (prefers-reduced-motion: reduce){
-    *, *::before, *::after{
-      animation-duration:0.01ms !important; animation-iteration-count:1 !important;
-      transition-duration:0.01ms !important;
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px){
+    .app{ flex-direction:column; }
+    .resize-handle{ display:none; }
+    .deck{
+      flex:0 0 auto; width:100% !important; max-width:none; border-left:none; border-top:1px solid var(--line);
+      order:2;
     }
+    .main{ order:1; }
+    .disk{ width:min(150px, 50%); }
   }
-
   @media (max-width: 480px){
-    .deckbar{ padding:14px 16px; }
-    .fader-rail{ padding:12px 16px; gap:18px; }
+    .topbar{ padding:14px 16px; flex-wrap:wrap; }
     .stage{ padding:20px 16px 40px; }
-    .pad-grid{ grid-template-columns:repeat(auto-fill, minmax(108px, 1fr)); gap:12px; }
+    .pad-grid{ grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:12px; }
+    .deck{ padding:16px 14px 20px; }
   }
 </style>
 </head>
 <body class="is-empty">
 
   <div class="bg-fx" aria-hidden="true">
-    <span class="orb orb1"></span>
-    <span class="orb orb2"></span>
-    <span class="orb orb3"></span>
+    <div class="grid-static"></div>
+
+    <div class="fluid fluid1"></div>
+    <div class="fluid fluid2"></div>
+    <div class="fluid fluid3"></div>
+    <div class="fluid fluid4"></div>
+
+    <div class="beam-rig">
+      <div class="beam beam1"></div>
+      <div class="beam beam2"></div>
+      <div class="beam beam3"></div>
+      <div class="beam beam4"></div>
+    </div>
+
+    <div class="laser laser1"></div>
+    <div class="laser laser2"></div>
+    <div class="laser laser3"></div>
+
+    <div class="string-wrap">
+      <svg viewBox="0 0 1200 140" preserveAspectRatio="none" width="100%" height="140" style="position:absolute; top:0; left:0;">
+        <g class="string-strand string-strand--a">
+          <path d="M -20 18 Q 300 90 620 22 T 1240 16" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <circle class="bulb" cx="60" cy="26" r="5" fill="#00eeff"/>
+          <circle class="bulb" cx="240" cy="58" r="5" fill="#ff2f7b"/>
+          <circle class="bulb" cx="420" cy="74" r="5" fill="#ffb020"/>
+          <circle class="bulb" cx="600" cy="56" r="5" fill="#8b6bff"/>
+          <circle class="bulb" cx="780" cy="34" r="5" fill="#39ff7a"/>
+          <circle class="bulb" cx="960" cy="22" r="5" fill="#00eeff"/>
+          <circle class="bulb" cx="1140" cy="18" r="5" fill="#ff2f7b"/>
+        </g>
+        <g class="string-strand string-strand--b">
+          <path d="M -20 6 Q 320 70 640 10 T 1260 4" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          <circle class="bulb" cx="140" cy="34" r="4" fill="#8b6bff"/>
+          <circle class="bulb" cx="320" cy="56" r="4" fill="#00eeff"/>
+          <circle class="bulb" cx="500" cy="44" r="4" fill="#39ff7a"/>
+          <circle class="bulb" cx="680" cy="22" r="4" fill="#ffb020"/>
+          <circle class="bulb" cx="860" cy="10" r="4" fill="#ff2f7b"/>
+          <circle class="bulb" cx="1040" cy="6" r="4" fill="#8b6bff"/>
+        </g>
+      </svg>
+    </div>
+
     <span class="particle" style="left:8%; animation-duration:14s; animation-delay:0s;"></span>
     <span class="particle" style="left:18%; animation-duration:19s; animation-delay:-4s;"></span>
     <span class="particle" style="left:29%; animation-duration:16s; animation-delay:-9s;"></span>
@@ -391,8 +409,9 @@
         <ul>
           <li>Tap <strong>+</strong> to load a meme sound from your files.</li>
           <li>Tap a pad once to fire it once. Hold a pad to loop it until you let go.</li>
-          <li><strong>DROP VOL</strong> controls your meme sounds only. <strong>TRACK VOL</strong> controls the optional background track.</li>
-          <li>Load a background track and drops will duck it by 20% automatically, then bring it back up.</li>
+          <li>The right-hand <strong>deck</strong> holds your background track — drag its left edge to resize.</li>
+          <li>Loading a track shows a spinning disk, a progress bar, and its own volume slider.</li>
+          <li>Playing a drop ducks the track to 80% automatically, then brings it back up.</li>
           <li>Hover any control for a moment to see what it does.</li>
         </ul>
       </div>
@@ -413,51 +432,77 @@
     </div>
   </div>
 
-  <header class="deckbar">
-    <div class="brand">
-      <span class="brand-mark">DROPDECK</span>
-      <span class="brand-eyebrow">LIVE DROP CONSOLE</span>
+  <div class="app">
+    <div class="main">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">DROPDECK</span>
+          <span class="brand-eyebrow">LIVE DROP CONSOLE</span>
+        </div>
+
+        <div class="fader-unit">
+          <label for="dropVol">DROP VOL</label>
+          <input type="range" id="dropVol" min="0" max="100" value="90">
+          <span class="fader-readout" id="dropVolReadout">90%</span>
+        </div>
+
+        <button class="stopall-btn" id="stopAllBtn" title="Stop every drop immediately">STOP ALL</button>
+      </header>
+
+      <main class="stage">
+        <div class="empty-hint" id="emptyHint">
+          <p class="empty-title">Nothing loaded yet.</p>
+          <p class="empty-sub">Tap + and pick a sound from your files.<br>Tap a pad once to fire it once — hold it down to loop.</p>
+        </div>
+
+        <div class="pad-grid" id="padGrid">
+          <button class="pad pad--add" id="addPadBtn" aria-label="Add a sound">
+            <span class="pad-plus">+</span>
+          </button>
+        </div>
+      </main>
     </div>
 
-    <div class="track-strip" id="trackStrip">
-      <button class="track-btn" id="loadTrackBtn" title="Load a background track so drops can duck it">
-        <span id="trackBtnLabel">＋ Load track</span>
-      </button>
-      <button class="track-toggle" id="trackToggleBtn" hidden title="Play / pause track">
-        <span id="trackToggleIcon">▶</span>
-      </button>
-      <span class="track-label" id="trackLabel"></span>
-      <div class="eq-bars" id="eqBars"><span></span><span></span><span></span><span></span></div>
-    </div>
+    <div class="resize-handle" id="resizeHandle" title="Drag to resize the track deck"></div>
 
-    <button class="stopall-btn" id="stopAllBtn" title="Stop every drop immediately">STOP ALL</button>
-  </header>
+    <aside class="deck" id="deck" style="--deck-w-init:1">
+      <div class="deck-heading">
+        <span class="deck-eyebrow">TRACK DECK</span>
+      </div>
 
-  <div class="fader-rail">
-    <div class="fader-unit">
-      <label for="trackVol">TRACK VOL</label>
-      <input type="range" id="trackVol" min="0" max="100" value="70">
-      <span class="fader-readout" id="trackVolReadout">70%</span>
-    </div>
-    <div class="fader-unit">
-      <label for="dropVol">DROP VOL</label>
-      <input type="range" id="dropVol" min="0" max="100" value="90">
-      <span class="fader-readout" id="dropVolReadout">90%</span>
-    </div>
+      <button class="deck-load-btn" id="loadTrackBtn">＋ Load background track</button>
+
+      <div class="disk-wrap">
+        <div class="disk" id="disk">
+          <div class="disk-label"><span id="diskLabel">No track</span></div>
+        </div>
+      </div>
+
+      <div class="track-meta">
+        <div class="track-title is-empty" id="trackTitle">No track loaded</div>
+      </div>
+
+      <div class="transport-row">
+        <button class="transport-btn" id="trackRewindBtn" title="Back to start">⟲</button>
+        <button class="transport-btn transport-btn--play" id="trackToggleBtn" title="Play / pause track">
+          <span id="trackToggleIcon">▶</span>
+        </button>
+        <button class="transport-btn" id="trackMuteBtn" title="Mute / unmute track">🔊</button>
+      </div>
+
+      <div class="scrub-row">
+        <span class="time-readout" id="timeNow">0:00</span>
+        <input type="range" id="trackScrub" min="0" max="100" value="0" step="0.1">
+        <span class="time-readout time-readout--end" id="timeEnd">0:00</span>
+      </div>
+
+      <div class="deck-vol-row">
+        <label for="deckTrackVol">VOL</label>
+        <input type="range" id="deckTrackVol" min="0" max="100" value="70">
+        <span class="deck-vol-readout" id="deckTrackVolReadout">70%</span>
+      </div>
+    </aside>
   </div>
-
-  <main class="stage">
-    <div class="empty-hint" id="emptyHint">
-      <p class="empty-title">Nothing loaded yet.</p>
-      <p class="empty-sub">Tap + and pick a sound from your files.<br>Tap a pad once to fire it once — hold it down to loop.</p>
-    </div>
-
-    <div class="pad-grid" id="padGrid">
-      <button class="pad pad--add" id="addPadBtn" aria-label="Add a sound">
-        <span class="pad-plus">+</span>
-      </button>
-    </div>
-  </main>
 
   <input type="file" id="fileInput" accept="audio/*" multiple hidden>
   <input type="file" id="bgFileInput" accept="audio/*" hidden>
@@ -468,7 +513,6 @@
 
   var HOLD_THRESHOLD_MS = 260;
   var DUCK_RAMP_MS = 150;
-
   var PALETTE = ["#00eeff", "#ff2f7b", "#ffb020", "#8b6bff"];
 
   var pads = [];
@@ -477,10 +521,12 @@
 
   var dropVolumeFraction = 0.9;
   var trackVolumeFraction = 0.7;
+  var trackMuted = false;
 
   var bgAudio = null;
   var bgDucked = false;
   var bgRampHandle = null;
+  var scrubDragging = false;
 
   // ---------- DOM refs ----------
   var body = document.body;
@@ -490,17 +536,25 @@
   var bgFileInput = document.getElementById("bgFileInput");
 
   var loadTrackBtn = document.getElementById("loadTrackBtn");
-  var trackBtnLabel = document.getElementById("trackBtnLabel");
   var trackToggleBtn = document.getElementById("trackToggleBtn");
   var trackToggleIcon = document.getElementById("trackToggleIcon");
-  var trackLabel = document.getElementById("trackLabel");
-  var eqBars = document.getElementById("eqBars");
+  var trackRewindBtn = document.getElementById("trackRewindBtn");
+  var trackMuteBtn = document.getElementById("trackMuteBtn");
+  var trackTitle = document.getElementById("trackTitle");
+  var disk = document.getElementById("disk");
+  var diskLabel = document.getElementById("diskLabel");
+  var trackScrub = document.getElementById("trackScrub");
+  var timeNow = document.getElementById("timeNow");
+  var timeEnd = document.getElementById("timeEnd");
+  var deckTrackVol = document.getElementById("deckTrackVol");
+  var deckTrackVolReadout = document.getElementById("deckTrackVolReadout");
 
   var stopAllBtn = document.getElementById("stopAllBtn");
-  var trackVolSlider = document.getElementById("trackVol");
-  var trackVolReadout = document.getElementById("trackVolReadout");
   var dropVolSlider = document.getElementById("dropVol");
   var dropVolReadout = document.getElementById("dropVolReadout");
+
+  var deck = document.getElementById("deck");
+  var resizeHandle = document.getElementById("resizeHandle");
 
   var onboardOverlay = document.getElementById("onboardOverlay");
   var onboardDismissBtn = document.getElementById("onboardDismiss");
@@ -515,12 +569,17 @@
     var base = filename.replace(/\.[^./\\]+$/, "");
     base = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
     if (!base) return "Untitled";
-    return base.split(" ").map(function(w){
-      return w.charAt(0).toUpperCase() + w.slice(1);
-    }).join(" ");
+    return base.split(" ").map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(" ");
   }
 
   function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+  function formatTime(sec){
+    if (!isFinite(sec) || sec < 0) sec = 0;
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
 
   function rampVolume(audioEl, toVal, durationMs){
     if (!audioEl) return;
@@ -531,26 +590,27 @@
     function step(now){
       var t = Math.min((now - start) / durationMs, 1);
       audioEl.volume = fromVal + (toVal - fromVal) * t;
-      if (t < 1){
-        bgRampHandle = requestAnimationFrame(step);
-      } else {
-        bgRampHandle = null;
-      }
+      if (t < 1){ bgRampHandle = requestAnimationFrame(step); } else { bgRampHandle = null; }
     }
     bgRampHandle = requestAnimationFrame(step);
+  }
+
+  function effectiveTrackVolume(){
+    if (trackMuted) return 0;
+    return bgDucked ? trackVolumeFraction * 0.8 : trackVolumeFraction;
   }
 
   function duckBackground(){
     if (!bgAudio || bgDucked) return;
     bgDucked = true;
-    rampVolume(bgAudio, trackVolumeFraction * 0.8, DUCK_RAMP_MS);
+    if (!trackMuted) rampVolume(bgAudio, trackVolumeFraction * 0.8, DUCK_RAMP_MS);
   }
 
   function restoreBackground(){
     if (!bgAudio || !bgDucked) return;
     if (activeDropCount > 0) return;
     bgDucked = false;
-    rampVolume(bgAudio, trackVolumeFraction, DUCK_RAMP_MS);
+    if (!trackMuted) rampVolume(bgAudio, trackVolumeFraction, DUCK_RAMP_MS);
   }
 
   function endDropPlayback(pad){
@@ -586,37 +646,33 @@
     }
     tooltipEl.classList.add("is-visible");
   }
-
-  function hideTooltip(){
-    tooltipEl.classList.remove("is-visible");
-  }
-
+  function hideTooltip(){ tooltipEl.classList.remove("is-visible"); }
   function bindTooltip(el, text){
     if (!el) return;
     el.addEventListener("mouseenter", function(){
       clearTimeout(tooltipTimer);
       tooltipTimer = setTimeout(function(){ showTooltip(el, text); }, 700);
     });
-    el.addEventListener("mouseleave", function(){
-      clearTimeout(tooltipTimer);
-      hideTooltip();
-    });
+    el.addEventListener("mouseleave", function(){ clearTimeout(tooltipTimer); hideTooltip(); });
     el.addEventListener("pointerdown", hideTooltip);
   }
 
   bindTooltip(addPadBtn, "Add a meme sound from your files");
-  bindTooltip(loadTrackBtn, "Load a background track so drops can duck its volume");
+  bindTooltip(loadTrackBtn, "Load a background track into the deck");
   bindTooltip(trackToggleBtn, "Play or pause the background track");
+  bindTooltip(trackRewindBtn, "Jump back to the start of the track");
+  bindTooltip(trackMuteBtn, "Mute or unmute the track");
+  bindTooltip(trackScrub, "Drag to jump to a point in the track");
   bindTooltip(stopAllBtn, "Stop every sound playing right now");
-  bindTooltip(trackVolSlider, "Volume for the background track only");
+  bindTooltip(deckTrackVol, "Volume for the background track only");
   bindTooltip(dropVolSlider, "Volume for your meme sounds only");
+  bindTooltip(resizeHandle, "Drag to resize the track deck");
 
   // ---------- generic confirm modal ----------
   function showConfirm(title, message, onContinue, onCancel){
     confirmTitleEl.textContent = title;
     confirmBodyEl.textContent = message;
     confirmOverlay.classList.add("is-visible");
-
     function cleanup(){
       confirmOverlay.classList.remove("is-visible");
       confirmContinueBtn.removeEventListener("click", contHandler);
@@ -624,7 +680,6 @@
     }
     function contHandler(){ cleanup(); if (onContinue) onContinue(); }
     function cancelHandler(){ cleanup(); if (onCancel) onCancel(); }
-
     confirmContinueBtn.addEventListener("click", contHandler);
     confirmCancelBtn.addEventListener("click", cancelHandler);
   }
@@ -665,9 +720,7 @@
 
   function onPadPointerDown(pad, e){
     e.preventDefault();
-    if (pad.el.setPointerCapture){
-      try { pad.el.setPointerCapture(e.pointerId); } catch(err){}
-    }
+    if (pad.el.setPointerCapture){ try { pad.el.setPointerCapture(e.pointerId); } catch(err){} }
     pad.pressing = true;
     pad.audio.currentTime = 0;
     pad.audio.volume = dropVolumeFraction;
@@ -693,7 +746,6 @@
     } else {
       pad.el.style.setProperty("--charge", 0);
       flashFire(pad.el);
-      // let it finish naturally; the 'ended' listener handles bookkeeping
     }
   }
 
@@ -733,9 +785,7 @@
       pressing: false, isLooping: false, counted: false, rafId: null
     };
 
-    audio.addEventListener("ended", function(){
-      endDropPlayback(pad);
-    });
+    audio.addEventListener("ended", function(){ endDropPlayback(pad); });
 
     el.addEventListener("pointerdown", function(e){ onPadPointerDown(pad, e); });
     ["pointerup", "pointercancel", "lostpointercapture"].forEach(function(evt){
@@ -743,30 +793,21 @@
     });
 
     removeEl.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
-    removeEl.addEventListener("click", function(e){
-      e.stopPropagation();
-      removePad(pad);
-    });
+    removeEl.addEventListener("click", function(e){ e.stopPropagation(); removePad(pad); });
 
     bindTooltip(el, "Tap to play \"" + title + "\" once — hold to loop it.");
     bindTooltip(removeEl, "Remove this sound");
 
     pads.push(pad);
 
-    if (body.classList.contains("is-empty")){
-      body.classList.remove("is-empty");
-    }
+    if (body.classList.contains("is-empty")) body.classList.remove("is-empty");
   }
 
   function removePad(pad){
     if (pad.rafId) cancelAnimationFrame(pad.rafId);
     if (pad.pressing){
       pad.pressing = false;
-      if (pad.isLooping){
-        stopLoopedInstance(pad);
-      } else {
-        endDropPlayback(pad);
-      }
+      if (pad.isLooping) stopLoopedInstance(pad); else endDropPlayback(pad);
     } else if (!pad.audio.paused){
       pad.audio.pause();
       endDropPlayback(pad);
@@ -779,7 +820,6 @@
 
   // ---------- add pads ----------
   addPadBtn.addEventListener("click", function(){ fileInput.click(); });
-
   fileInput.addEventListener("change", function(){
     var files = Array.prototype.slice.call(fileInput.files || []);
     files.forEach(function(file){
@@ -796,33 +836,38 @@
     var file = bgFileInput.files && bgFileInput.files[0];
     if (!file) return;
 
-    if (bgAudio){
-      bgAudio.pause();
-      URL.revokeObjectURL(bgAudio.src);
-    }
+    if (bgAudio){ bgAudio.pause(); URL.revokeObjectURL(bgAudio.src); }
     var url = URL.createObjectURL(file);
     bgAudio = new Audio(url);
     bgAudio.loop = true;
-    bgAudio.volume = trackVolumeFraction;
+    bgAudio.volume = effectiveTrackVolume();
     bgDucked = false;
 
-    trackLabel.textContent = deriveTitle(file.name);
-    trackBtnLabel.textContent = "Change track";
-    trackToggleBtn.hidden = false;
+    var title = deriveTitle(file.name);
+    trackTitle.textContent = title;
+    trackTitle.classList.remove("is-empty");
+    diskLabel.textContent = title;
+
+    bgAudio.addEventListener("loadedmetadata", function(){
+      timeEnd.textContent = formatTime(bgAudio.duration);
+      trackScrub.max = isFinite(bgAudio.duration) ? bgAudio.duration : 100;
+    });
+    bgAudio.addEventListener("timeupdate", function(){
+      if (scrubDragging) return;
+      timeNow.textContent = formatTime(bgAudio.currentTime);
+      trackScrub.value = bgAudio.currentTime;
+    });
 
     var p = bgAudio.play();
-    if (p && p.then){
-      p.then(function(){ setTrackPlayingUI(true); }).catch(function(){ setTrackPlayingUI(false); });
-    } else {
-      setTrackPlayingUI(true);
-    }
+    if (p && p.then){ p.then(function(){ setTrackPlayingUI(true); }).catch(function(){ setTrackPlayingUI(false); }); }
+    else { setTrackPlayingUI(true); }
 
     bgFileInput.value = "";
   });
 
   function setTrackPlayingUI(isPlaying){
     trackToggleIcon.textContent = isPlaying ? "❚❚" : "▶";
-    eqBars.classList.toggle("is-playing", isPlaying);
+    disk.classList.toggle("is-spinning", isPlaying);
   }
 
   trackToggleBtn.addEventListener("click", function(){
@@ -837,15 +882,37 @@
     }
   });
 
-  // ---------- faders ----------
-  trackVolSlider.addEventListener("input", function(){
-    var v = Number(trackVolSlider.value);
-    trackVolumeFraction = v / 100;
-    trackVolReadout.textContent = v + "%";
-    if (bgAudio){
-      bgAudio.volume = bgDucked ? trackVolumeFraction * 0.8 : trackVolumeFraction;
-    }
+  trackRewindBtn.addEventListener("click", function(){
+    if (!bgAudio) return;
+    bgAudio.currentTime = 0;
+    timeNow.textContent = formatTime(0);
+    trackScrub.value = 0;
   });
+
+  trackMuteBtn.addEventListener("click", function(){
+    if (!bgAudio) return;
+    trackMuted = !trackMuted;
+    trackMuteBtn.textContent = trackMuted ? "🔇" : "🔊";
+    bgAudio.volume = effectiveTrackVolume();
+  });
+
+  trackScrub.addEventListener("pointerdown", function(){ scrubDragging = true; });
+  trackScrub.addEventListener("input", function(){
+    timeNow.textContent = formatTime(Number(trackScrub.value));
+  });
+  trackScrub.addEventListener("change", function(){
+    if (bgAudio) bgAudio.currentTime = Number(trackScrub.value);
+    scrubDragging = false;
+  });
+
+  // ---------- faders ----------
+  function setTrackVolume(v){
+    trackVolumeFraction = v / 100;
+    deckTrackVol.value = v;
+    deckTrackVolReadout.textContent = v + "%";
+    if (bgAudio) bgAudio.volume = effectiveTrackVolume();
+  }
+  deckTrackVol.addEventListener("input", function(){ setTrackVolume(Number(deckTrackVol.value)); });
 
   dropVolSlider.addEventListener("input", function(){
     var v = Number(dropVolSlider.value);
@@ -858,19 +925,41 @@
   stopAllBtn.addEventListener("click", function(){
     pads.forEach(function(pad){
       if (pad.rafId) cancelAnimationFrame(pad.rafId);
-      pad.rafId = null;
-      pad.pressing = false;
-      pad.audio.loop = false;
-      pad.audio.pause();
-      pad.audio.currentTime = 0;
-      pad.isLooping = false;
-      pad.counted = false;
+      pad.rafId = null; pad.pressing = false;
+      pad.audio.loop = false; pad.audio.pause(); pad.audio.currentTime = 0;
+      pad.isLooping = false; pad.counted = false;
       pad.el.classList.remove("is-looping");
       pad.el.style.setProperty("--charge", 0);
     });
     activeDropCount = 0;
     restoreBackground();
   });
+
+  // ---------- resizable deck ----------
+  (function(){
+    var dragging = false;
+    function setWidth(px){
+      var min = 240, max = Math.min(560, window.innerWidth * 0.6);
+      px = Math.max(min, Math.min(max, px));
+      document.documentElement.style.setProperty("--deck-w", px + "px");
+    }
+    resizeHandle.addEventListener("pointerdown", function(e){
+      dragging = true;
+      resizeHandle.classList.add("is-dragging");
+      resizeHandle.setPointerCapture && resizeHandle.setPointerCapture(e.pointerId);
+    });
+    window.addEventListener("pointermove", function(e){
+      if (!dragging) return;
+      var px = window.innerWidth - e.clientX;
+      setWidth(px);
+    });
+    function stopDrag(){
+      dragging = false;
+      resizeHandle.classList.remove("is-dragging");
+    }
+    window.addEventListener("pointerup", stopDrag);
+    window.addEventListener("pointercancel", stopDrag);
+  })();
 
   // ---------- first-time walkthrough ----------
   onboardOverlay.classList.add("is-visible");
@@ -879,39 +968,21 @@
   });
 
   // ---------- refresh confirmation (3 steps) ----------
-  // Browsers only allow ONE native dialog on the actual refresh button / tab
-  // close (the beforeunload handler below) — that's a security limit no site
-  // can override. What we CAN fully control is the in-page keyboard shortcut,
-  // so F5 / Ctrl+R / Cmd+R go through a real 3-step confirmation chain.
   var REFRESH_MESSAGES = [
     "Reloading clears every loaded sound and your background track. Continue?",
     "Sure? You'll need to re-add everything from scratch.",
     "Final check — reload the page now?"
   ];
-
   function startRefreshChain(step){
-    if (step >= REFRESH_MESSAGES.length){
-      window.location.reload();
-      return;
-    }
-    showConfirm("Hold on (" + (step + 1) + "/3)", REFRESH_MESSAGES[step], function(){
-      startRefreshChain(step + 1);
-    });
+    if (step >= REFRESH_MESSAGES.length){ window.location.reload(); return; }
+    showConfirm("Hold on (" + (step + 1) + "/3)", REFRESH_MESSAGES[step], function(){ startRefreshChain(step + 1); });
   }
-
   window.addEventListener("keydown", function(e){
     var isF5 = e.key === "F5";
     var isCtrlR = (e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R");
-    if (isF5 || isCtrlR){
-      e.preventDefault();
-      startRefreshChain(0);
-    }
+    if (isF5 || isCtrlR){ e.preventDefault(); startRefreshChain(0); }
   });
-
-  window.addEventListener("beforeunload", function(e){
-    e.preventDefault();
-    e.returnValue = "";
-  });
+  window.addEventListener("beforeunload", function(e){ e.preventDefault(); e.returnValue = ""; });
 
 })();
 </script>
